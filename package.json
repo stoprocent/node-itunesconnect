@@ -1,0 +1,26 @@
+{
+  "name": "itc-report",
+  "version": "0.0.1",
+  "description": "node.js iTunes Connect Reporting module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stoprocent/itc-report.git"
+  },
+  "keywords": [
+    "itunes connect",
+    "apple",
+    "apps",
+    "reporting",
+    "downloads"
+  ],
+  "author": "Marek Serafin <marek@snowheads.pl> (http://github.com/stoprocent)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stoprocent/itc-report/issues"
+  },
+  "homepage": "https://github.com/stoprocent/itc-report"
+}

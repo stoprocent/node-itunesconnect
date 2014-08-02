@@ -2,7 +2,10 @@
   "name": "itc-report",
   "version": "0.0.1",
   "description": "node.js iTunes Connect Reporting module",
-  "main": "index.js",
+  "main": "./index.js",
+  "bin": {
+    "itcreport": "./bin/cli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,5 +25,14 @@
   "bugs": {
     "url": "https://github.com/stoprocent/itc-report/issues"
   },
-  "homepage": "https://github.com/stoprocent/itc-report"
+  "homepage": "https://github.com/stoprocent/itc-report",
+  "dependencies": {
+    "path": "~0.4.9",
+    "commander": "~2.3.0",
+    "colors": "~0.6.2",
+    "underscore": "~1.6.0",
+    "moment": "~2.8.1",
+    "request": "~2.39.0",
+    "cheerio": "~0.17.0"
+  }
 }

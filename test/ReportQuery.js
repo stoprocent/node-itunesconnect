@@ -37,13 +37,13 @@ describe('ReportQuery', function(){
 
 		it('should have a default group property', function(done){
 			var query = ReportQuery.ranked();
-			query.query.group.should.not.equal(null);
+			query.config.group.should.not.equal(null);
 			done();
 		})
 
 		it('should have properties start and end', function(done){
 			var query = ReportQuery.ranked();
-			query.query.should.have.properties('start', 'end');
+			query.config.should.have.properties('start', 'end');
 			done();
 		})
 
@@ -53,20 +53,20 @@ describe('ReportQuery', function(){
 				var query = ReportQuery.ranked({
 					limit: 10
 				});
-				query.query.limit.should.equal(10);
+				query.config.limit.should.equal(10);
 				done();
 			})
 
 			it('should overwrite default group property', function(done){
 				var query = ReportQuery.ranked({group: 'location'});
-				query.query.group.should.not.equal('content');
+				query.config.group.should.not.equal('content');
 				done();
 			})
 
 			describe('group()', function(){
 				it('should overwrite query group value', function(done){
 					var query = ReportQuery.ranked({group: 'location'}).group('category');
-					query.query.group.should.equal('category');
+					query.config.group.should.equal('category');
 					done();
 				})
 			})
@@ -143,7 +143,7 @@ describe('ReportQuery', function(){
 			var query = ReportQuery.timed().date('2014-10-02').time(1, 'day')
 			query.body();
 
-			moment.isMoment(query.query.start).should.be.true;
+			moment.isMoment(query.config.start).should.be.true;
 			done();
 		})
 
@@ -151,7 +151,7 @@ describe('ReportQuery', function(){
 			var query = ReportQuery.timed().date('2014-10-02').time(1, 'day')
 			query.body();
 
-			moment.isMoment(query.query.end).should.be.true;
+			moment.isMoment(query.config.end).should.be.true;
 			done();
 		})
 
@@ -159,28 +159,28 @@ describe('ReportQuery', function(){
 			var query = ReportQuery.timed().date('2014-10-02').time(1, 'day')
 			query.body();
 
-			query.query.start.format('YYYY-MM-DD').should.equal('2014-10-01');
+			query.config.start.format('YYYY-MM-DD').should.equal('2014-10-01');
 			done();
 		})
 		it('should have start value one week before end date', function(done){
 			var query = ReportQuery.timed().date('2014-10-08').time(1, 'week')
 			query.body();
 
-			query.query.start.format('YYYY-MM-DD').should.equal('2014-10-01');
+			query.config.start.format('YYYY-MM-DD').should.equal('2014-10-01');
 			done();
 		})
 		it('should have start value 2 months before end date', function(done){
 			var query = ReportQuery.timed().date('2014-10-02').time(2, 'months')
 			query.body();
 
-			query.query.start.format('YYYY-MM-DD').should.equal('2014-08-02');
+			query.config.start.format('YYYY-MM-DD').should.equal('2014-08-02');
 			done();
 		})
 		it('should have start value 3 years before end date', function(done){
 			var query = ReportQuery.timed().date('2014-10-02').time(3, 'years')
 			query.body();
 
-			query.query.start.format('YYYY-MM-DD').should.equal('2011-10-02');
+			query.config.start.format('YYYY-MM-DD').should.equal('2011-10-02');
 			done();
 		})
 	})

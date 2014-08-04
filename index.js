@@ -113,35 +113,39 @@ exports.Constants = Constants;
 * @param {String} username Apple ID login
 * @param {String} password Apple ID password
 * @param {Object} [options]
-* @param {String} [options.loginURL] iTunes Connect Login URL
+* @param {String} [options.baseURL] iTunes Connect Login URL
 * @param {String} [options.apiURL] iTunes Connect API URL
 * @param {Number} [options.concurrentRequests] Number of concurrent requests
 * @param {Function} [options.errorCallback] Error callback function called when requests are failing
 */
 
 function iTunesConnect(username, password, options) {
-	this._cookies = [];
-
+	// Default Options
 	this.options = {
-		loginURL			: "https://itunesconnect.apple.com",
+		baseURL				: "https://itunesconnect.apple.com",
 		apiURL				: "https://reportingitc2.apple.com/api/",
-		concurrentRequests	: 3,
+		concurrentRequests	: 2,
 		errorCallback		: function(e) {}
 	};
+	// Extend options
 	_.extend(this.options, options);
+
+	// Set cookies
+	this._cookies = [];
 
 	// Task Executor
 	this._queue = async.queue(
 		this.executeRequest.bind(this), 
 		this.options.concurrentRequests
 	);
+	// Pasue queue and wait for login to complete
 	this._queue.pause();
-
+	// Login to iTunes Connect
 	this.login(username, password);
 }
 
 /**
-* Request iTunes Connect report with the given `query` and `completed`.
+* Request iTunes Connect report with the given `query` and `completed` callback.
 *
 * Examples:
 *
@@ -168,12 +172,17 @@ function iTunesConnect(username, password, options) {
 */
 
 iTunesConnect.prototype.request = function(query, completed) {
-	this._queue.push({query: query, completed: completed});
+	// Push request to queue
+	this._queue.push({
+		query: query, 
+		completed: completed
+	});
+
 	return this;
 }
 
 /**
-* Fetch iTunes Connect Reporting metadata with given `completed`.
+* Fetch iTunes Connect Reporting metadata with given `completed` callback.
 *
 * Examples:
 *
@@ -219,8 +228,9 @@ iTunesConnect.prototype.metadata = function(completed) {
 iTunesConnect.prototype.executeRequest = function(task, callback) {
 	var query = task.query;
 	var completed = task.completed;
+	// Keep request body for callback
 	var requestBody = query.body();
-
+	// Run request
 	request.post({
 		url 	: this.options.apiURL + query.endpoint,
 		body 	: requestBody,
@@ -241,7 +251,9 @@ iTunesConnect.prototype.executeRequest = function(task, callback) {
 				body  = null;
 			}
 		}
+		// Call completed callback
 		completed(error, body, requestBody);
+		// Call callback to mark queue task as done
 		callback();
 	})
 }
@@ -259,7 +271,7 @@ iTunesConnect.prototype.executeRequest = function(task, callback) {
 iTunesConnect.prototype.login = function(username, password) {
 	var self = this;
 	// Request ITC to get fresh post action
-	request.get(this.options.loginURL, function(error, response, body) {
+	request.get(this.options.baseURL, function(error, response, body) {
 		// Handle Errors
 
 		// Search for action attribute
@@ -268,7 +280,7 @@ iTunesConnect.prototype.login = function(username, password) {
 
 		// Login to ITC
 		request.post({
-			url : self.options.loginURL + action, 
+			url : self.options.baseURL + action, 
 			form: {
 				'theAccountName' 	: username,
 				'theAccountPW'		: password,
@@ -340,12 +352,12 @@ iTunesConnect.prototype.login = function(username, password) {
 * @param {String} config.interval.quarter
 * @param {String} config.interval.year
 * @param {Object} [config.filters] Possible keys:
-* @param {String|Number|Array} [config.filters.content]
-* @param {String|Number|Array} [config.filters.type]
-* @param {String|Number|Array} [config.filters.transaction] 
-* @param {String|Number|Array} [config.filters.category]
-* @param {String|Number|Array} [config.filters.platform]
-* @param {String|Number|Array} [config.filters.location]
+* @param {Number|Array} [config.filters.content]
+* @param {String|Array} [config.filters.type]
+* @param {String|Array} [config.filters.transaction] 
+* @param {Number|Array} [config.filters.category]
+* @param {String|Array} [config.filters.platform]
+* @param {Number|Array} [config.filters.location]
 * @param {String} [config.group] One of following: 
 * @param {String} config.group.content
 * @param {String} config.group.type
@@ -389,6 +401,7 @@ function ReportQuery(type, config) {
 * @method ranked
 * @for ReportQuery
 * @param {Object} [config]
+* @chainable
 * @return {Query}
 */
 
@@ -419,6 +432,7 @@ ReportQuery.ranked = function(config) {
 * @method timed
 * @for ReportQuery
 * @param {Object} [config]
+* @chainable
 * @return {Query}
 */
 
@@ -433,6 +447,7 @@ ReportQuery.timed = function(config) {
 * @constructor
 * @private
 * @param {Object} config
+* @chainable
 * @return {Query}
 */
 
@@ -440,24 +455,19 @@ function Query(config) {
 	this.type   			= null;
 	this.endpoint 			= null;
 
-	this.query = {
+	this.config = {
 		start 		: moment(),
 		end 		: moment(),
-		interval 	: 'day',
-		filters 	: [],
-		group 		: null,
+		filters 	: {},
 		measures	: ['units'],
 		limit 		: 100
 	};
 	// Extend options with user stuff
-	_.extend(this.query, config);
+	_.extend(this.config, config);
 
 	// Private Options
 	this._time    = null;
-	this._filters = this.query.filters || {};
 	this._body    = {};
-
-	return this;
 }
 
 /**
@@ -466,27 +476,28 @@ function Query(config) {
 * @method body
 * @for Query
 * @private
-* @return {String}
+* @return {String} JSON String
 */
+
 Query.prototype.body = function() {
 	// Ensure date is moment object
-	this.query.start = translateToMoment(this.query.start);
-	this.query.end = translateToMoment(this.query.end);
+	this.config.start = TransformValue.toMomentObject(this.config.start);
+	this.config.end = TransformValue.toMomentObject(this.config.end);
 
 	// If start and end date are same and time() was used in query calculate new start date
-	if (!this.query.end.diff(this.query.start, 'days') && _.isArray(this._time)) {
-		this.query.start = this.query.start.subtract(this._time[0], this._time[1]);
+	if (this.config.end.diff(this.config.start, 'days') === 0 && _.isArray(this._time)) {
+		this.config.start = this.config.start.subtract(this._time[0], this._time[1]);
 	}
 
 	// Building body
 	this._body = {
-		"start_date"	: this.query.start.format("YYYY-MM-DD[T00:00:00.000Z]"),
-		"end_date"		: this.query.end.format("YYYY-MM-DD[T00:00:00.000Z]"),
-		"interval"		: this.query.interval,
-		"filters"		: translateToFilters(this._filters),
-		"group"			: translateToAppleKey(this.query.group),
-		"measures"		: this.query.measures,
-		"limit"			: this.query.limit
+		"start_date"	: this.config.start.format("YYYY-MM-DD[T00:00:00.000Z]"),
+		"end_date"		: this.config.end.format("YYYY-MM-DD[T00:00:00.000Z]"),
+		"interval"		: this.config.interval,
+		"filters"		: TransformValue.toBodyFilters(this.config.filters),
+		"group"			: TransformValue.toAppleKey(this.config.group),
+		"measures"		: this.config.measures,
+		"limit"			: this.config.limit
 	};
 	return JSON.stringify(this._body);
 }
@@ -503,6 +514,10 @@ Query.prototype.body = function() {
 Query.prototype.timed = function() {
 	this.type 		= 'timed';
 	this.endpoint 	= 'data/timeseries';
+
+	// Defaults for ranked type
+	this.config.group = this.config.group || null;
+	this.config.interval = this.config.interval || 'day';
 
 	return this;
 }
@@ -521,7 +536,8 @@ Query.prototype.ranked = function() {
 	this.endpoint 	= 'data/ranked';
 
 	// Defaults for ranked type
-	this.query.group = this.query.group || 'content';
+	this.config.group = this.config.group || 'content';
+	this.config.interval = this.config.interval || 'day';
 
 	return this;
 }
@@ -541,7 +557,7 @@ Query.prototype.ranked = function() {
 */
 
 Query.prototype.interval = function(value) {
-	this.query.interval = value;
+	this.config.interval = value;
 	return this;
 }
 
@@ -561,14 +577,16 @@ Query.prototype.interval = function(value) {
 *
 * @method date
 * @for Query
-* @param {String|Date} <start> If end is undefined it will be set same as start. If String must be in format YYYY-MM-DD
-* @param {String|Date} [end] If String must be in format YYYY-MM-DD
+* @param {String|Date} <start> If end is undefined it will be set same as start. If String, must be in format YYYY-MM-DD
+* @param {String|Date} [end] If String, must be in format YYYY-MM-DD
 * @chainable
 */
 
 Query.prototype.date = function(start, end) {
-	this.query.start = translateToMoment( start );
-	this.query.end = translateToMoment( ((typeof end == 'undefined') ? start : end) );
+	this.config.start = TransformValue.toMomentObject( start );
+	this.config.end = TransformValue.toMomentObject( 
+		((typeof end == 'undefined') ? start : end) 
+	);
 
 	return this;
 }
@@ -609,7 +627,7 @@ Query.prototype.time = function(value, unit) {
 */
 
 Query.prototype.group = function(value) {
-	this.query.group = value;
+	this.config.group = value;
 	return this;
 }
 
@@ -623,7 +641,7 @@ Query.prototype.group = function(value) {
 */
 
 Query.prototype.measures = function(value) {
-	this.query.measures = value;
+	this.config.measures = value;
 	return this;
 }
 
@@ -637,7 +655,7 @@ Query.prototype.measures = function(value) {
 */
 
 Query.prototype.limit = function(value) {
-	this.query.limit = value;
+	this.config.limit = value;
 	return this;
 }
 
@@ -651,7 +669,7 @@ Query.prototype.limit = function(value) {
 */
 
 Query.prototype.content = function(value) {
-	this._filters.content = value;
+	this.config.filters.content = value;
 	return this;
 }
 
@@ -687,7 +705,7 @@ Query.prototype.content = function(value) {
 */
 
 Query.prototype.category = function(value) {
-	this._filters.category = value;
+	this.config.filters.category = value;
 	return this;
 }
 
@@ -701,7 +719,7 @@ Query.prototype.category = function(value) {
 */
 
 Query.prototype.location = function(value) {
-	this._filters.location = value;
+	this.config.filters.location = value;
 	return this;
 }
 
@@ -710,12 +728,12 @@ Query.prototype.location = function(value) {
 *
 * @method platform
 * @for Query
-* @param {Number|Array} <value> (Look in Constants under Platforms)
+* @param {String|Array} <value> (Look in Constants under Platforms)
 * @chainable
 */
 
 Query.prototype.platform = function(value) {
-	this._filters.platform = value;
+	this.config.filters.platform = value;
 	return this;
 }
 
@@ -724,12 +742,12 @@ Query.prototype.platform = function(value) {
 *
 * @method type
 * @for Query
-* @param {Number|Array} <value> (Look in Constants under Types)
+* @param {String|Array} <value> (Look in Constants under Types)
 * @chainable
 */
 
 Query.prototype.type = function(value) {
-	this._filters.type = value;
+	this.config.filters.type = value;
 	return this;
 }
 
@@ -738,39 +756,45 @@ Query.prototype.type = function(value) {
 *
 * @method transaction
 * @for Query
-* @param {Number|Array} <value> (Look in Constants under Transactions)
+* @param {String|Array} <value> (Look in Constants under Transactions)
 * @chainable
 */
 
 Query.prototype.transaction = function(value) {
-	this._filters.transaction = value;
+	this.config.filters.transaction = value;
 	return this;
 }
+
+/*
+* Transform Value Object
+*
+* @private
+*/
+
+var TransformValue = {};
 
 /*
 * Translates simple filters object to apple api format
 *
 * @private
+* @function toBodyFilters
+* @for TransformValue
 * @param {Object} filters
 * @return {Object}
 */
 
-function translateToFilters(filters) {
+TransformValue.toBodyFilters = function(filters) {
 	var result = [];
-	_.each(filters, function(values, dimension) {
-		if(!_.isArray(values)) 
-			values = [values];
-
-		var dimension_key = translateToAppleKey(dimension);
-
-		if(dimension_key === false)
-			return;
+	_.each(filters, function(value, dimension) {
+		if(!_.isArray(value)) 
+			value = [value];
 
 		result.push({
-			dimension_key	: dimension_key,
-			option_keys		: values
+			dimension_key	: TransformValue.toAppleKey(dimension),
+			option_keys		: value
 		});
 	});
+
 	return result;
 }
 
@@ -778,12 +802,16 @@ function translateToFilters(filters) {
 * Translates key to apple key
 *
 * @private
+* @function toAppleKey
+* @for TransformValue
 * @param {String} key
 * @return {String}
 */
 
-function translateToAppleKey(key) {
-	if(key === null) return key;
+TransformValue.toAppleKey = function(key) {
+	if(key === null)
+		return null;
+
 	var keys = {
 		content 	: "content",
 		type 		: "content_type",
@@ -792,9 +820,10 @@ function translateToAppleKey(key) {
 		platform 	: "platform",
 		location 	: "piano_location"
 	};
-	if(typeof keys[key] === 'undefined') {
-		throw new Error('Unknown filter or group key: ' + key);
-	}
+
+	if(typeof keys[key] === 'undefined')
+		throw new Error('Unknown Apple Key for key: ' + key);
+
 	return keys[key];
 }
 
@@ -802,11 +831,13 @@ function translateToAppleKey(key) {
 * Translates given date to moment object
 *
 * @private
+* @function toMomentObject
+* @for TransformValue
 * @param {Mixed} date
 * @return {Moment}
 */
 
-function translateToMoment(date) {
+TransformValue.toMomentObject = function(date) {
 	// Quick check if moment
 	if(moment.isMoment(date)) {
 		return date;
@@ -814,7 +845,7 @@ function translateToMoment(date) {
 	else if(date instanceof Date) {
 		return moment(date);
 	}
-	else if(typeof date === "string" && !!(date.match(new RegExp(/([0-9]{4})-([0-9]{2})-([0-9]{2})/)))) {
+	else if(_.isString(date) && !!(date.match(new RegExp(/([0-9]{4})-([0-9]{2})-([0-9]{2})/)))) {
 		return moment(date, "YYYY-MM-DD");
 	}
 	else {

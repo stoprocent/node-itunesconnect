@@ -43,7 +43,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "index.js",
-            "line": 429
+            "line": 443
         }
     },
     "classes": {
@@ -58,7 +58,7 @@
             "module": "itc-report",
             "namespace": "",
             "file": "index.js",
-            "line": 37,
+            "line": 31,
             "description": "Static constants to make it easier to build query\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\tConstants \t\t= iTunesConnect.Constants;\n\n\t// Possible Types \n\tConstants.InApp // In-App Purchases\n\tConstants.App // App Purchases\n\n\t// Possible Transactions \n\tConstants.Free\n\tConstants.Paid \n\tConstants.Redownload\n\tConstants.Update\n\tConstants.Refund \n\n\t// Possible Platforms\n\tConstants.Desktop\n\tConstants.iPhone \n\tConstants.iPad \n\tConstants.iPod\n\n\t// Possible Measures\n\tConstants.Proceeds // How much moooooooneeeey\n\tConstants.Units // How many units"
         },
         "iTunesConnect": {
@@ -93,7 +93,7 @@
                     "optional": true,
                     "props": [
                         {
-                            "name": "loginURL",
+                            "name": "baseURL",
                             "description": "iTunes Connect Login URL",
                             "type": "String",
                             "optional": true
@@ -131,7 +131,7 @@
             "module": "itc-report",
             "namespace": "",
             "file": "index.js",
-            "line": 293,
+            "line": 305,
             "description": "Initialize a new `Query` with the given `type` and `config`.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\tConstants \t\t= iTunesConnect.Constants;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Timed type query\n\tvar query = ReportQuery('timed');\n\t\n\t// Ranked type query with config object\n\tvar query = ReportQuery('ranked', { limit: 100 });\t\n\n\t// Advanced Example\n\tvar advancedQuery = ReportQuery('timed', {\n\t\tstart \t: '2014-04-08',\n\t\tend \t: '2014-04-25',\n\t\tlimit \t: 100,\n\t\tfilters : {\n\t\t\tcontent: [{AppID}, {AppID}, {AppID}],\n\t\t\tlocation: [{LocationID}, {LocationID}],\n\t\t\ttransaction: Constants.Free,\n\t\t\ttype: [\n\t\t\t\tConstants.InApp, \n\t\t\t\tConstants.App\n\t\t\t],\n\t\t\tcategory: {CategoryID}\n\t\t},\n\t\tgroup: 'content'\n\t});",
             "is_constructor": 1,
             "params": [
@@ -200,37 +200,37 @@
                                 {
                                     "name": "content",
                                     "description": "",
-                                    "type": "String|Number|Array",
+                                    "type": "Number|Array",
                                     "optional": true
                                 },
                                 {
                                     "name": "type",
                                     "description": "",
-                                    "type": "String|Number|Array",
+                                    "type": "String|Array",
                                     "optional": true
                                 },
                                 {
                                     "name": "transaction",
                                     "description": "",
-                                    "type": "String|Number|Array",
+                                    "type": "String|Array",
                                     "optional": true
                                 },
                                 {
                                     "name": "category",
                                     "description": "",
-                                    "type": "String|Number|Array",
+                                    "type": "Number|Array",
                                     "optional": true
                                 },
                                 {
                                     "name": "platform",
                                     "description": "",
-                                    "type": "String|Number|Array",
+                                    "type": "String|Array",
                                     "optional": true
                                 },
                                 {
                                     "name": "location",
                                     "description": "",
-                                    "type": "String|Number|Array",
+                                    "type": "Number|Array",
                                     "optional": true
                                 }
                             ]
@@ -304,7 +304,7 @@
             "module": "itc-report",
             "namespace": "",
             "file": "index.js",
-            "line": 429,
+            "line": 443,
             "description": "Initialize a new `Query` with the given `query`.",
             "is_constructor": 1,
             "access": "private",
@@ -316,6 +316,7 @@
                     "type": "Object"
                 }
             ],
+            "chainable": 1,
             "return": {
                 "description": "",
                 "type": "Query"
@@ -325,8 +326,8 @@
     "classitems": [
         {
             "file": "index.js",
-            "line": 143,
-            "description": "Request iTunes Connect report with the given `query` and `completed`.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Request timed report from yesterday to today\n\titunes.request(ReportQuery.timed().time(1, 'day'), function(error, result) {\n\t\tconsole.log(result);\n\t})",
+            "line": 147,
+            "description": "Request iTunes Connect report with the given `query` and `completed` callback.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Request timed report from yesterday to today\n\titunes.request(ReportQuery.timed().time(1, 'day'), function(error, result) {\n\t\tconsole.log(result);\n\t})",
             "itemtype": "method",
             "name": "request",
             "params": [
@@ -365,8 +366,8 @@
         },
         {
             "file": "index.js",
-            "line": 175,
-            "description": "Fetch iTunes Connect Reporting metadata with given `completed`.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Fetch API Metadata\n\titunes.metadata(function(error, result) {\n\t\tconsole.log(result);\n\t})",
+            "line": 184,
+            "description": "Fetch iTunes Connect Reporting metadata with given `completed` callback.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Fetch API Metadata\n\titunes.metadata(function(error, result) {\n\t\tconsole.log(result);\n\t})",
             "itemtype": "method",
             "name": "metadata",
             "params": [
@@ -399,7 +400,7 @@
         },
         {
             "file": "index.js",
-            "line": 209,
+            "line": 218,
             "description": "Execute iTunes Connect report request with given `task` and `callback`.",
             "access": "private",
             "tagname": "",
@@ -422,7 +423,7 @@
         },
         {
             "file": "index.js",
-            "line": 249,
+            "line": 261,
             "description": "Login to iTunes Connect with given `username` and `password`.",
             "access": "private",
             "tagname": "",
@@ -445,7 +446,7 @@
         },
         {
             "file": "index.js",
-            "line": 369,
+            "line": 381,
             "description": "Initialize a new `Query` with the ranked type and given `config`.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Ranked type query\n\tvar query = ReportQuery.ranked();\n\n\t// Another query\n\tvar otherQuery = ReportQuery.ranked({\n\t\tlimit: 10\n\t});",
             "itemtype": "method",
             "name": "ranked",
@@ -457,6 +458,7 @@
                     "optional": true
                 }
             ],
+            "chainable": 1,
             "return": {
                 "description": "",
                 "type": "Query"
@@ -466,7 +468,7 @@
         },
         {
             "file": "index.js",
-            "line": 399,
+            "line": 412,
             "description": "Initialize a new `Query` with the timed type and given `config`.\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Init new iTunes Connect\n\tvar itunes = new iTunesConnect('apple@id.com', 'password');\n\n\t// Timed type query\n\tvar query = ReportQuery.timed();\n\n\t// Another query\n\tvar otherQuery = ReportQuery.timed({\n\t\tlimit: 10\n\t});",
             "itemtype": "method",
             "name": "timed",
@@ -478,6 +480,7 @@
                     "optional": true
                 }
             ],
+            "chainable": 1,
             "return": {
                 "description": "",
                 "type": "Query"
@@ -487,14 +490,14 @@
         },
         {
             "file": "index.js",
-            "line": 463,
+            "line": 473,
             "description": "Builds and returns body for iTunesConnect request as JSON string",
             "itemtype": "method",
             "name": "body",
             "access": "private",
             "tagname": "",
             "return": {
-                "description": "",
+                "description": "JSON String",
                 "type": "String"
             },
             "class": "Query",
@@ -502,7 +505,7 @@
         },
         {
             "file": "index.js",
-            "line": 494,
+            "line": 505,
             "description": "Initialize a new `Query` with the timed type.",
             "access": "private",
             "tagname": "",
@@ -514,7 +517,7 @@
         },
         {
             "file": "index.js",
-            "line": 510,
+            "line": 525,
             "description": "Initialize a new `Query` with the ranked type.",
             "access": "private",
             "tagname": "",
@@ -526,7 +529,7 @@
         },
         {
             "file": "index.js",
-            "line": 529,
+            "line": 545,
             "description": "Sets interval property for `Query`",
             "itemtype": "method",
             "name": "interval",
@@ -570,19 +573,19 @@
         },
         {
             "file": "index.js",
-            "line": 548,
+            "line": 564,
             "description": "Sets start and end property for `Query`\n\nExamples:\n\n\t// Start and end date set manualy\n\tquery.date('2014-04-08', new Date());\n\n\t// Start and end date will be todays date\n\tquery.date(new Date());\n\n\t// Start and end date will be set as 8th of April 2014\n\tquery.date('2014-04-08');",
             "itemtype": "method",
             "name": "date",
             "params": [
                 {
                     "name": "<start>",
-                    "description": "If end is undefined it will be set same as start. If String must be in format YYYY-MM-DD",
+                    "description": "If end is undefined it will be set same as start. If String, must be in format YYYY-MM-DD",
                     "type": "String|Date"
                 },
                 {
                     "name": "end",
-                    "description": "If String must be in format YYYY-MM-DD",
+                    "description": "If String, must be in format YYYY-MM-DD",
                     "type": "String|Date",
                     "optional": true
                 }
@@ -593,7 +596,7 @@
         },
         {
             "file": "index.js",
-            "line": 576,
+            "line": 594,
             "description": "Sets start property for `Query` in more easy/generic way\n\nExamples:\n\n\tquery.time(1, 'week');\n\tquery.time(20, 'days');",
             "itemtype": "method",
             "name": "time",
@@ -615,7 +618,7 @@
         },
         {
             "file": "index.js",
-            "line": 596,
+            "line": 614,
             "description": "Sets `group by` property for `Query`",
             "itemtype": "method",
             "name": "group",
@@ -664,7 +667,7 @@
         },
         {
             "file": "index.js",
-            "line": 616,
+            "line": 634,
             "description": "Sets measures property for `Query`",
             "itemtype": "method",
             "name": "measures",
@@ -681,7 +684,7 @@
         },
         {
             "file": "index.js",
-            "line": 630,
+            "line": 648,
             "description": "Sets limit property for `Query`",
             "itemtype": "method",
             "name": "limit",
@@ -698,7 +701,7 @@
         },
         {
             "file": "index.js",
-            "line": 644,
+            "line": 662,
             "description": "Sets content filter for `Query`",
             "itemtype": "method",
             "name": "content",
@@ -715,7 +718,7 @@
         },
         {
             "file": "index.js",
-            "line": 658,
+            "line": 676,
             "description": "Sets category filter for `Query`\n\nExamples:\n\n\t// Import itc-report\n\tvar iTunesConnect \t= require(\"itc-report\"),\n\t\tReportQuery   \t= iTunesConnect.ReportQuery;\n\t\n\t// Query\n\tvar query = ReportQuery.timed({\n\t\tlimit: 10\n\t}).category(6001);\t\n\n\t// Another Query\n\tvar otherQuery = ReportQuery.timed({\n\t\tlimit: 10\n\t});\n\t// OK\n\totherQuery.category([6001, 6002, 6003]);\n\n\t// Wrong - This will not work as for version 0.0.1! 6003 will overwrite previously set category ids\n\t// You are more than welcome to sort this out in pull request. I saw no reason to do this.\n\totherQuery.category([6001, 6002, 6003]).category(6003);",
             "itemtype": "method",
             "name": "category",
@@ -732,7 +735,7 @@
         },
         {
             "file": "index.js",
-            "line": 694,
+            "line": 712,
             "description": "Sets location filter for `Query`",
             "itemtype": "method",
             "name": "location",
@@ -749,7 +752,7 @@
         },
         {
             "file": "index.js",
-            "line": 708,
+            "line": 726,
             "description": "Sets platform filter for `Query`",
             "itemtype": "method",
             "name": "platform",
@@ -757,7 +760,7 @@
                 {
                     "name": "<value>",
                     "description": "(Look in Constants under Platforms)",
-                    "type": "Number|Array"
+                    "type": "String|Array"
                 }
             ],
             "chainable": 1,
@@ -766,7 +769,7 @@
         },
         {
             "file": "index.js",
-            "line": 722,
+            "line": 740,
             "description": "Sets type filter for `Query`",
             "itemtype": "method",
             "name": "type",
@@ -774,7 +777,7 @@
                 {
                     "name": "<value>",
                     "description": "(Look in Constants under Types)",
-                    "type": "Number|Array"
+                    "type": "String|Array"
                 }
             ],
             "chainable": 1,
@@ -783,7 +786,7 @@
         },
         {
             "file": "index.js",
-            "line": 736,
+            "line": 754,
             "description": "Sets transaction filter for `Query`",
             "itemtype": "method",
             "name": "transaction",
@@ -791,7 +794,7 @@
                 {
                     "name": "<value>",
                     "description": "(Look in Constants under Transactions)",
-                    "type": "Number|Array"
+                    "type": "String|Array"
                 }
             ],
             "chainable": 1,

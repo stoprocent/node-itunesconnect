@@ -1,0 +1,9 @@
+{
+    "name": "itc-report",
+    "description": "node.js iTunes Connect Reporting module.",
+    "version": "0.0.1",
+    "url": "https://github.com/stoprocent/itc-report",
+    "options": {
+        "outdir": "./docs"
+    }
+}

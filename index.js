@@ -9,8 +9,8 @@ var async 	= require('async');
 	cheerio = require('cheerio'),
 	moment  = require('moment'),
 	fs 		= require('fs'),
-	path 	= require('path'),
-	_ 		= require('underscore');
+	path	= require('path'),
+	_		= require('underscore');
 
 /**
 * @module itc-report

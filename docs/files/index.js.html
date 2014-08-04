@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>index.js - itc-report</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            
+                <h1><img src="../assets/css/logo.png" title="itc-report"></h1>
+            
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: 0.0.1</em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="../classes/Constants.html">Constants</a></li>
+            
+                <li><a href="../classes/iTunesConnect.html">iTunesConnect</a></li>
+            
+                <li><a href="../classes/Query.html">Query</a></li>
+            
+                <li><a href="../classes/ReportQuery.html">ReportQuery</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="../modules/itc-report.html">itc-report</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: index.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+//! itc-report.js
+//! version : 0.0.1
+//! authors : Marek Serafin
+//! license : MIT
+//! github.com/stoprocent/itc-report
+
+var async 	= require(&#x27;async&#x27;);
+	request = require(&#x27;request&#x27;),
+	cheerio = require(&#x27;cheerio&#x27;),
+	moment  = require(&#x27;moment&#x27;),
+	fs 		= require(&#x27;fs&#x27;),
+	path 	= require(&#x27;path&#x27;),
+	_ 		= require(&#x27;underscore&#x27;);
+
+/**
+* @module itc-report
+*/
+
+/*
+* Expose &#x60;iTunesConnect&#x60;
+*/
+
+exports = module.exports = iTunesConnect;
+
+/*
+* Expose &#x60;ReportQuery&#x60;.
+*/
+
+exports.ReportQuery = ReportQuery;
+
+/*
+* Expose &#x60;Constants&#x60;.
+*/
+
+exports.Constants = Constants;
+
+/**
+* Static constants to make it easier to build query
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*		Constants 		= iTunesConnect.Constants;
+*
+*	// Possible Types 
+*	Constants.InApp // In-App Purchases
+*	Constants.App // App Purchases
+*
+*	// Possible Transactions 
+*	Constants.Free
+*	Constants.Paid 
+*	Constants.Redownload
+*	Constants.Update
+*	Constants.Refund 
+*
+* 	// Possible Platforms
+*	Constants.Desktop
+*	Constants.iPhone 
+*	Constants.iPad 
+*	Constants.iPod
+*
+*	// Possible Measures
+*	Constants.Proceeds // How much moooooooneeeey
+*	Constants.Units // How many units 
+*	
+* @class Constants
+*
+*/
+var Constants = {
+	// Types
+	InApp				: &quot;IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ&quot;,
+	App  				: &quot;1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4&quot;,
+	// Transactions
+	Free 				: &quot;1, 2, 3, 4&quot;,
+	Paid 				:  &quot;5, 6, 7, 8, 9, 54&quot;,
+	Redownload 			: &quot;1001, 1005, 1006&quot;,
+	Update 				: &quot;1002&quot;,
+	Refund 				: &quot;1003&quot;,
+	// Platforms
+	Desktop 			: &quot;Windows, Macintosh, UNKNOWN&quot;,
+	iPhone 				: &quot;iPhone&quot;,
+	iPad 				: &quot;iPad&quot;,
+	iPod 				: &quot;iPod&quot;,
+	// Measures
+	Proceeds 			: &quot;Royalty&quot;,
+	Units 				: &quot;units&quot;
+};
+
+/**
+* Initialize a new &#x60;iTunesConnect&#x60; with the given &#x60;username&#x60;, &#x60;password&#x60; and &#x60;options&#x60;.
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;, {
+*		errorCallback: function(error) {
+*			console.log(error);
+*		},
+*		concurrentRequests: 1
+*	});
+*	
+* @class iTunesConnect
+* @constructor
+* @param {String} username Apple ID login
+* @param {String} password Apple ID password
+* @param {Object} [options]
+* @param {String} [options.loginURL] iTunes Connect Login URL
+* @param {String} [options.apiURL] iTunes Connect API URL
+* @param {Number} [options.concurrentRequests] Number of concurrent requests
+* @param {Function} [options.errorCallback] Error callback function called when requests are failing
+*/
+
+function iTunesConnect(username, password, options) {
+	this._cookies = [];
+
+	this.options = {
+		loginURL			: &quot;https://itunesconnect.apple.com&quot;,
+		apiURL				: &quot;https://reportingitc2.apple.com/api/&quot;,
+		concurrentRequests	: 3,
+		errorCallback		: function(e) {}
+	};
+	_.extend(this.options, options);
+
+	// Task Executor
+	this._queue = async.queue(
+		this.executeRequest.bind(this), 
+		this.options.concurrentRequests
+	);
+	this._queue.pause();
+
+	this.login(username, password);
+}
+
+/**
+* Request iTunes Connect report with the given &#x60;query&#x60; and &#x60;completed&#x60;.
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*
+*	// Request timed report from yesterday to today
+*	itunes.request(ReportQuery.timed().time(1, &#x27;day&#x27;), function(error, result) {
+*		console.log(result);
+*	})
+*	
+* @method request
+* @for iTunesConnect
+* @param {Query} query
+* @param {Function} completed
+* @param {Error} completed.error Just an error if occure
+* @param {Object} completed.result Report result 
+* @param {Object} [completed.query] Query that was sent
+* @chainable
+*/
+
+iTunesConnect.prototype.request = function(query, completed) {
+	this._queue.push({query: query, completed: completed});
+	return this;
+}
+
+/**
+* Fetch iTunes Connect Reporting metadata with given &#x60;completed&#x60;.
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*
+*	// Fetch API Metadata
+*	itunes.metadata(function(error, result) {
+*		console.log(result);
+*	})
+*	
+* @method metadata
+* @for iTunesConnect
+* @for iTunesConnect
+* @param {Function} completed
+* @param {Error} completed.error Just an error if occure
+* @param {Object} completed.result Metadata result 
+* @param {Object} [completed.query] Query that was sent
+*/
+
+iTunesConnect.prototype.metadata = function(completed) {
+	var query = {
+		body: function(){},
+		endpoint: &quot;all_metadata&quot;
+	}
+	this._queue.push({query: query, completed: completed});
+}
+
+/**
+* Execute iTunes Connect report request with given &#x60;task&#x60; and &#x60;callback&#x60;.
+*
+* @private
+* @method executeRequest
+* @for iTunesConnect
+* @param {Object} task
+* @param {Function} callback
+*/
+
+iTunesConnect.prototype.executeRequest = function(task, callback) {
+	var query = task.query;
+	var completed = task.completed;
+	var requestBody = query.body();
+
+	request.post({
+		url 	: this.options.apiURL + query.endpoint,
+		body 	: requestBody,
+		headers	: {
+			&#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
+			&#x27;Cookie&#x27;: this._cookies
+		}
+	}, function(error, response, body) {
+		if(response.statusCode == 401) {
+			error = new Error(&#x27;This request requires authentication. Please check your username and password.&#x27;);
+			body  = null;
+		}
+		else {
+			try {
+				body = JSON.parse(body);
+			} catch (e) {
+				error = new Error(&#x27;There was an error while parsing JSON.&#x27;);
+				body  = null;
+			}
+		}
+		completed(error, body, requestBody);
+		callback();
+	})
+}
+
+/**
+* Login to iTunes Connect with given &#x60;username&#x60; and &#x60;password&#x60;.
+*
+* @private
+* @method login
+* @for iTunesConnect
+* @param {String} username Apple ID login
+* @param {String} password Apple ID password
+*/
+
+iTunesConnect.prototype.login = function(username, password) {
+	var self = this;
+	// Request ITC to get fresh post action
+	request.get(this.options.loginURL, function(error, response, body) {
+		// Handle Errors
+
+		// Search for action attribute
+		var html = cheerio.load(body);
+		var action = html(&#x27;form&#x27;).attr(&#x27;action&#x27;);
+
+		// Login to ITC
+		request.post({
+			url : self.options.loginURL + action, 
+			form: {
+				&#x27;theAccountName&#x27; 	: username,
+				&#x27;theAccountPW&#x27;		: password,
+				&#x27;theAuxValue&#x27;		: &quot;&quot;
+			}
+		}, function(error, response, body) {
+			var cookies = response.headers[&#x27;set-cookie&#x27;];
+			// Handle Errors
+			if(error || !cookies.length) {
+				error = error || new Error(&#x27;There was a problem with recieving cookies. Please check your username and password.&#x27;);
+				this.options.errorCallback( error );
+			}
+			else { 
+				// Set Cookies and emit event
+				self._cookies = cookies;
+				self._queue.resume();
+			}
+		});
+	});
+}
+
+/**
+* Initialize a new &#x60;Query&#x60; with the given &#x60;type&#x60; and &#x60;config&#x60;.
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*		Constants 		= iTunesConnect.Constants;
+*	
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*
+*	// Timed type query
+*	var query = ReportQuery(&#x27;timed&#x27;);
+*	
+*	// Ranked type query with config object
+*	var query = ReportQuery(&#x27;ranked&#x27;, { limit: 100 });	
+*
+*	// Advanced Example
+*	var advancedQuery = ReportQuery(&#x27;timed&#x27;, {
+*		start 	: &#x27;2014-04-08&#x27;,
+*		end 	: &#x27;2014-04-25&#x27;,
+*		limit 	: 100,
+*		filters : {
+*			content: [{AppID}, {AppID}, {AppID}],
+*			location: [{LocationID}, {LocationID}],
+*			transaction: Constants.Free,
+*			type: [
+*				Constants.InApp, 
+*				Constants.App
+*			],
+*			category: {CategoryID}
+*		},
+*		group: &#x27;content&#x27;
+*	});	
+*	
+* @class ReportQuery
+* @constructor
+* @param {String} &lt;type&gt;
+* @param {Object} [config]
+* @param {String|Date} [config.start] Date or if String must be in format YYYY-MM-DD
+* @param {Object} [config.end] Date or if String must be in format YYYY-MM-DD
+* @param {String} [config.interval] One of the following:
+* @param {String} config.interval.day
+* @param {String} config.interval.week
+* @param {String} config.interval.month
+* @param {String} config.interval.quarter
+* @param {String} config.interval.year
+* @param {Object} [config.filters] Possible keys:
+* @param {String|Number|Array} [config.filters.content]
+* @param {String|Number|Array} [config.filters.type]
+* @param {String|Number|Array} [config.filters.transaction] 
+* @param {String|Number|Array} [config.filters.category]
+* @param {String|Number|Array} [config.filters.platform]
+* @param {String|Number|Array} [config.filters.location]
+* @param {String} [config.group] One of following: 
+* @param {String} config.group.content
+* @param {String} config.group.type
+* @param {String} config.group.transaction
+* @param {String} config.group.category
+* @param {String} config.group.platform
+* @param {String} config.group.location
+* @param {Object} [config.measures]
+* @param {Number} [config.limit]
+* @return {Query}
+*/
+
+function ReportQuery(type, config) {
+	var fn = Query.prototype[type];
+	if(typeof fn !== &#x27;function&#x27;) {
+		throw new Error(&#x27;Unknown ReportQuery type: &#x27; + type);
+	}
+	return new Query(config)[type]();
+}
+
+/**
+* Initialize a new &#x60;Query&#x60; with the ranked type and given &#x60;config&#x60;.
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*
+*	// Ranked type query
+*	var query = ReportQuery.ranked();
+*
+*	// Another query
+*	var otherQuery = ReportQuery.ranked({
+*		limit: 10
+*	});	
+*	
+* @method ranked
+* @for ReportQuery
+* @param {Object} [config]
+* @return {Query}
+*/
+
+ReportQuery.ranked = function(config) {
+	return new Query(config).ranked();
+}
+
+/**
+* Initialize a new &#x60;Query&#x60; with the timed type and given &#x60;config&#x60;.
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	
+*	// Init new iTunes Connect
+*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*
+*	// Timed type query
+*	var query = ReportQuery.timed();
+*
+*	// Another query
+*	var otherQuery = ReportQuery.timed({
+*		limit: 10
+*	});	
+*	
+* @method timed
+* @for ReportQuery
+* @param {Object} [config]
+* @return {Query}
+*/
+
+ReportQuery.timed = function(config) {
+	return new Query(config).timed();
+}
+
+/**
+* Initialize a new &#x60;Query&#x60; with the given &#x60;query&#x60;.
+*
+* @class Query
+* @constructor
+* @private
+* @param {Object} config
+* @return {Query}
+*/
+
+function Query(config) {
+	this.type   			= null;
+	this.endpoint 			= null;
+
+	this.query = {
+		start 		: moment(),
+		end 		: moment(),
+		interval 	: &#x27;day&#x27;,
+		filters 	: [],
+		group 		: null,
+		measures	: [&#x27;units&#x27;],
+		limit 		: 100
+	};
+	// Extend options with user stuff
+	_.extend(this.query, config);
+
+	// Private Options
+	this._time    = null;
+	this._filters = this.query.filters || {};
+	this._body    = {};
+
+	return this;
+}
+
+/**
+* Builds and returns body for iTunesConnect request as JSON string
+*
+* @method body
+* @for Query
+* @private
+* @return {String}
+*/
+Query.prototype.body = function() {
+	// Ensure date is moment object
+	this.query.start = translateToMoment(this.query.start);
+	this.query.end = translateToMoment(this.query.end);
+
+	// If start and end date are same and time() was used in query calculate new start date
+	if (!this.query.end.diff(this.query.start, &#x27;days&#x27;) &amp;&amp; _.isArray(this._time)) {
+		this.query.start = this.query.start.subtract(this._time[0], this._time[1]);
+	}
+
+	// Building body
+	this._body = {
+		&quot;start_date&quot;	: this.query.start.format(&quot;YYYY-MM-DD[T00:00:00.000Z]&quot;),
+		&quot;end_date&quot;		: this.query.end.format(&quot;YYYY-MM-DD[T00:00:00.000Z]&quot;),
+		&quot;interval&quot;		: this.query.interval,
+		&quot;filters&quot;		: translateToFilters(this._filters),
+		&quot;group&quot;			: translateToAppleKey(this.query.group),
+		&quot;measures&quot;		: this.query.measures,
+		&quot;limit&quot;			: this.query.limit
+	};
+	return JSON.stringify(this._body);
+}
+
+/**
+* Initialize a new &#x60;Query&#x60; with the timed type.
+*
+* @private
+* @method timed
+* @for Query
+* @chainable
+*/
+
+Query.prototype.timed = function() {
+	this.type 		= &#x27;timed&#x27;;
+	this.endpoint 	= &#x27;data/timeseries&#x27;;
+
+	return this;
+}
+
+/**
+* Initialize a new &#x60;Query&#x60; with the ranked type.
+*
+* @private
+* @method ranked
+* @for Query
+* @chainable
+*/
+
+Query.prototype.ranked = function() {
+	this.type 		= &#x27;ranked&#x27;;
+	this.endpoint 	= &#x27;data/ranked&#x27;;
+
+	// Defaults for ranked type
+	this.query.group = this.query.group || &#x27;content&#x27;;
+
+	return this;
+}
+
+/**
+* Sets interval property for &#x60;Query&#x60;
+*
+* @method interval
+* @for Query
+* @param {String} value One of the following: 
+* @param {String} value.day 
+* @param {String} value.week
+* @param {String} value.month 
+* @param {String} value.quarter
+* @param {String} value.year
+* @chainable
+*/
+
+Query.prototype.interval = function(value) {
+	this.query.interval = value;
+	return this;
+}
+
+/**
+* Sets start and end property for &#x60;Query&#x60;
+*
+* Examples:
+*
+*	// Start and end date set manualy
+*	query.date(&#x27;2014-04-08&#x27;, new Date());
+*
+*	// Start and end date will be todays date
+*	query.date(new Date());
+*
+*	// Start and end date will be set as 8th of April 2014
+*	query.date(&#x27;2014-04-08&#x27;);
+*
+* @method date
+* @for Query
+* @param {String|Date} &lt;start&gt; If end is undefined it will be set same as start. If String must be in format YYYY-MM-DD
+* @param {String|Date} [end] If String must be in format YYYY-MM-DD
+* @chainable
+*/
+
+Query.prototype.date = function(start, end) {
+	this.query.start = translateToMoment( start );
+	this.query.end = translateToMoment( ((typeof end == &#x27;undefined&#x27;) ? start : end) );
+
+	return this;
+}
+
+/**
+* Sets start property for &#x60;Query&#x60; in more easy/generic way
+*
+* Examples:
+*
+*	query.time(1, &#x27;week&#x27;);
+*	query.time(20, &#x27;days&#x27;);
+*
+* @method time
+* @for Query
+* @param {Number} &lt;value&gt; 
+* @param {String} &lt;unit&gt; day, week, month, etc...
+* @chainable
+*/
+
+Query.prototype.time = function(value, unit) {
+	this._time = [value, unit];
+	return this;
+}
+
+/**
+* Sets &#x60;group by&#x60; property for &#x60;Query&#x60;
+*
+* @method group
+* @for Query
+* @param {String} value One of following: 
+* @param {String} value.content
+* @param {String} value.type
+* @param {String} value.transaction
+* @param {String} value.category
+* @param {String} value.platform
+* @param {String} value.location
+* @chainable
+*/
+
+Query.prototype.group = function(value) {
+	this.query.group = value;
+	return this;
+}
+
+/**
+* Sets measures property for &#x60;Query&#x60;
+*
+* @method measures
+* @for Query
+* @param {String|Array} &lt;value&gt; 
+* @chainable
+*/
+
+Query.prototype.measures = function(value) {
+	this.query.measures = value;
+	return this;
+}
+
+/**
+* Sets limit property for &#x60;Query&#x60;
+*
+* @method limit
+* @for Query
+* @param {Number} &lt;value&gt; Not sure if Apple is using limit in ranked type query
+* @chainable
+*/
+
+Query.prototype.limit = function(value) {
+	this.query.limit = value;
+	return this;
+}
+
+/**
+* Sets content filter for &#x60;Query&#x60;
+*
+* @method content
+* @for Query
+* @param {Number|Array} &lt;value&gt; AppStore ID
+* @chainable
+*/
+
+Query.prototype.content = function(value) {
+	this._filters.content = value;
+	return this;
+}
+
+/**
+* Sets category filter for &#x60;Query&#x60;
+*
+* Examples:
+*
+*	// Import itc-report
+*	var iTunesConnect 	= require(&quot;itc-report&quot;),
+*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	
+*	// Query
+*	var query = ReportQuery.timed({
+*		limit: 10
+*	}).category(6001);	
+*
+*	// Another Query
+*	var otherQuery = ReportQuery.timed({
+*		limit: 10
+*	});
+*	// OK
+* 	otherQuery.category([6001, 6002, 6003]);
+* 
+*	// Wrong - This will not work as for version 0.0.1! 6003 will overwrite previously set category ids
+* 	// You are more than welcome to sort this out in pull request. I saw no reason to do this.
+* 	otherQuery.category([6001, 6002, 6003]).category(6003);	
+*	
+* @method category
+* @for Query
+* @param {Number|Array} &lt;value&gt; Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#categories for available options
+* @chainable
+*/
+
+Query.prototype.category = function(value) {
+	this._filters.category = value;
+	return this;
+}
+
+/**
+* Sets location filter for &#x60;Query&#x60;
+*
+* @method location
+* @for Query
+* @param {Number|Array} &lt;value&gt; Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#countries for available options
+* @chainable
+*/
+
+Query.prototype.location = function(value) {
+	this._filters.location = value;
+	return this;
+}
+
+/**
+* Sets platform filter for &#x60;Query&#x60;
+*
+* @method platform
+* @for Query
+* @param {Number|Array} &lt;value&gt; (Look in Constants under Platforms)
+* @chainable
+*/
+
+Query.prototype.platform = function(value) {
+	this._filters.platform = value;
+	return this;
+}
+
+/**
+* Sets type filter for &#x60;Query&#x60;
+*
+* @method type
+* @for Query
+* @param {Number|Array} &lt;value&gt; (Look in Constants under Types)
+* @chainable
+*/
+
+Query.prototype.type = function(value) {
+	this._filters.type = value;
+	return this;
+}
+
+/**
+* Sets transaction filter for &#x60;Query&#x60;
+*
+* @method transaction
+* @for Query
+* @param {Number|Array} &lt;value&gt; (Look in Constants under Transactions)
+* @chainable
+*/
+
+Query.prototype.transaction = function(value) {
+	this._filters.transaction = value;
+	return this;
+}
+
+/*
+* Translates simple filters object to apple api format
+*
+* @private
+* @param {Object} filters
+* @return {Object}
+*/
+
+function translateToFilters(filters) {
+	var result = [];
+	_.each(filters, function(values, dimension) {
+		if(!_.isArray(values)) 
+			values = [values];
+
+		var dimension_key = translateToAppleKey(dimension);
+
+		if(dimension_key === false)
+			return;
+
+		result.push({
+			dimension_key	: dimension_key,
+			option_keys		: values
+		});
+	});
+	return result;
+}
+
+/*
+* Translates key to apple key
+*
+* @private
+* @param {String} key
+* @return {String}
+*/
+
+function translateToAppleKey(key) {
+	if(key === null) return key;
+	var keys = {
+		content 	: &quot;content&quot;,
+		type 		: &quot;content_type&quot;,
+		transaction : &quot;transaction_type&quot;,
+		category 	: &quot;Category&quot;,
+		platform 	: &quot;platform&quot;,
+		location 	: &quot;piano_location&quot;
+	};
+	if(typeof keys[key] === &#x27;undefined&#x27;) {
+		throw new Error(&#x27;Unknown filter or group key: &#x27; + key);
+	}
+	return keys[key];
+}
+
+/*
+* Translates given date to moment object
+*
+* @private
+* @param {Mixed} date
+* @return {Moment}
+*/
+
+function translateToMoment(date) {
+	// Quick check if moment
+	if(moment.isMoment(date)) {
+		return date;
+	}
+	else if(date instanceof Date) {
+		return moment(date);
+	}
+	else if(typeof date === &quot;string&quot; &amp;&amp; !!(date.match(new RegExp(/([0-9]{4})-([0-9]{2})-([0-9]{2})/)))) {
+		return moment(date, &quot;YYYY-MM-DD&quot;);
+	}
+	else {
+		throw new Error(&#x27;Unknown date format. Please use Date() object or String() with format YYYY-MM-DD.&#x27;);
+	} 
+}
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

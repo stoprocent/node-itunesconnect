@@ -323,10 +323,10 @@ Connect.prototype.login = function(username, password) {
 *		filters : {
 *			content: [{AppID}, {AppID}, {AppID}],
 *			location: [{LocationID}, {LocationID}],
-*			transaction: itc.Transaction.Free,
+*			transaction: itc.transaction.free,
 *			type: [
-*				itc.Type.InApp, 
-*				itc.Type.App
+*				itc.type.inapp, 
+*				itc.type.app
 *			],
 *			category: {CategoryID}
 *		},

@@ -130,41 +130,41 @@ exports.Report = Report;
 * Expose &#x60;Type&#x60;.
 */
 
-exports.Type = {
-	InApp 	: &quot;IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ&quot;,
-	App 	: &quot;1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4&quot;
+exports.type = {
+	inapp 	: &quot;IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ&quot;,
+	app 	: &quot;1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4&quot;
 } 
 
 /*
 * Expose &#x60;Transaction&#x60;.
 */
 
-exports.Transaction = {
-	Free 		: &quot;1, 2, 3, 4&quot;,
-	Paid 		: &quot;5, 6, 7, 8, 9, 54&quot;,
-	Redownload 	: &quot;1001, 1005, 1006&quot;,
-	Update 		: &quot;1002&quot;,
-	Refund 		: &quot;1003&quot;
+exports.transaction = {
+	free 		: &quot;1, 2, 3, 4&quot;,
+	paid 		: &quot;5, 6, 7, 8, 9, 54&quot;,
+	redownload 	: &quot;1001, 1005, 1006&quot;,
+	update 		: &quot;1002&quot;,
+	refund 		: &quot;1003&quot;
 }
 
 /*
 * Expose &#x60;Platform&#x60;.
 */
 
-exports.Platform = {
-	Desktop : &quot;Windows, Macintosh, UNKNOWN&quot;,
-	iPhone 	: &quot;iPhone&quot;,
-	iPad 	: &quot;iPad&quot;,
-	iPod 	: &quot;iPod&quot;,
+exports.platform = {
+	desktop : &quot;Windows, Macintosh, UNKNOWN&quot;,
+	iphone 	: &quot;iPhone&quot;,
+	ipad 	: &quot;iPad&quot;,
+	ipod 	: &quot;iPod&quot;,
 }
 
 /*
 * Expose &#x60;Measure&#x60;.
 */
 
-exports.Measure = {
-	Proceeds	: &quot;Royalty&quot;,
-	Units 		: &quot;units&quot;
+exports.measure = {
+	proceeds	: &quot;Royalty&quot;,
+	units 		: &quot;units&quot;
 }
 
 /**
@@ -201,10 +201,11 @@ exports.Measure = {
 function Connect(username, password, options) {
 	// Default Options
 	this.options = {
-		baseURL				: &quot;https://Connect.apple.com&quot;,
+		baseURL				: &quot;https://itunesconnect.apple.com&quot;,
 		apiURL				: &quot;https://reportingitc2.apple.com/api/&quot;,
 		concurrentRequests	: 2,
-		errorCallback		: function(e) {}
+		errorCallback		: function(e) {},
+		loginCallback		: function(c) {}
 	};
 	// Extend options
 	_.extend(this.options, options);
@@ -219,8 +220,15 @@ function Connect(username, password, options) {
 	);
 	// Pasue queue and wait for login to complete
 	this._queue.pause();
+
 	// Login to iTunes Connect
-	this.login(username, password);
+	if(typeof this.options[&quot;cookies&quot;] !== &#x27;undefined&#x27;) {
+		this._cookies = this.options.cookies;
+		this._queue.resume();
+	}
+	else {
+		this.login(username, password);
+	}
 }
 
 /**
@@ -373,8 +381,10 @@ Connect.prototype.login = function(username, password) {
 				this.options.errorCallback( error );
 			}
 			else { 
-				// Set Cookies and emit event
+				// Set _cookies and run callback
 				self._cookies = cookies;
+				self.options.loginCallback(cookies);
+				// Start requests queue
 				self._queue.resume();
 			}
 		});
@@ -407,10 +417,10 @@ Connect.prototype.login = function(username, password) {
 *		filters : {
 *			content: [{AppID}, {AppID}, {AppID}],
 *			location: [{LocationID}, {LocationID}],
-*			transaction: itc.Transaction.Free,
+*			transaction: itc.transaction.free,
 *			type: [
-*				itc.Type.InApp, 
-*				itc.Type.App
+*				itc.type.inapp, 
+*				itc.type.app
 *			],
 *			category: {CategoryID}
 *		},
@@ -527,25 +537,25 @@ Report.timed = function(config) {
 *	var itc = require(&quot;itunesconnect&quot;),
 *	
 *	// Types
-* 	itc.Type.InApp 
-* 	itc.Type.App 
+* 	itc.type.inapp 
+* 	itc.type.app 
 * 	
 *	// Transactions
-* 	itc.Transaction.Free
-* 	itc.Transaction.Paid
-* 	itc.Transaction.Redownload
-* 	itc.Transaction.Update
-* 	itc.Transaction.Refund
+* 	itc.transaction.free
+* 	itc.transaction.paid
+* 	itc.transaction.redownload
+* 	itc.transaction.update
+* 	itc.transaction.refund
 * 	
 *	// Platforms
-* 	itc.Platform.Desktop
-* 	itc.Platform.iPhone
-* 	itc.Platform.iPad
-* 	itc.Platform.iPod
+* 	itc.platform.desktop
+* 	itc.platform.iphone
+* 	itc.platform.ipad
+* 	itc.platform.ipod
 * 	
 *	// Measures
-* 	itc.Measure.Proceeds
-* 	itc.Measure.Units
+* 	itc.measure.proceeds
+* 	itc.measure.units
 *
 * @class Query
 * @constructor
@@ -591,6 +601,9 @@ Query.prototype.body = function() {
 	// If start and end date are same and time() was used in query calculate new start date
 	if (this.config.end.diff(this.config.start, &#x27;days&#x27;) === 0 &amp;&amp; _.isArray(this._time)) {
 		this.config.start = this.config.start.subtract(this._time[0], this._time[1]);
+	}
+	else if (this.config.end.diff(this.config.start, &#x27;days&#x27;) &lt; 0) {
+		this.config.start = this.config.end;
 	}
 
 	// Building body

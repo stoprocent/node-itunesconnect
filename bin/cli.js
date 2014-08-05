@@ -16,12 +16,35 @@ var program = require('commander'),
 * Options helpers
 */
 var Helpers = {
-	cacheFile: path.join( ((process.platform.substr(0, 3) === 'win') ? process.env.HOMEPATH : process.env.HOME),  ".itcreport")
+	cacheFile: path.join( ((process.platform.substr(0, 3) === 'win') ? process.env.HOMEPATH : process.env.HOME),  ".itcreport"),
+	translate: {
+		inapp: itc.type.inapp,
+		app: itc.type.app,
+
+		free: itc.transaction.free,
+		paid: itc.transaction.paid,
+		redownload: itc.transaction.redownload,
+		update: itc.transaction.update,
+		refund: itc.transaction.refund,
+
+		desktop: itc.platform.desktop,
+		iphone: itc.platform.iphone,
+		ipad: itc.platform.ipad,
+		ipod: itc.platform.ipod,
+
+		proceeds: itc.measure.proceeds,
+		units: itc.measure.units
+	}
 };
 
 Helpers.collectValues = function (value, collection) {
-  collection.push(value);
-  return collection;
+	// All values are unique so for now its ok to do it this way :()
+	if (typeof Helpers.translate[value] !== 'undefined') {
+		collection.push(Helpers.translate[value]);
+		return collection;
+	}
+	console.error("\nUknown value: " + value + "\n");
+	process.exit(1);
 }
 
 Helpers.sinceDate = function(value) {
@@ -183,7 +206,7 @@ program
 		Config.filters.type = program.type;
 	})
 	.on("measure", function() {
-		Config.measure = program.measure;
+		Config.measures = program.measure;
 	});
 
 // Command create-config

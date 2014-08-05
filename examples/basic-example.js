@@ -1,29 +1,25 @@
-var iTunesConnect 	= require("../"),
-	ReportQuery   	= iTunesConnect.ReportQuery;
-	Constants 		= iTunesConnect.Constants;
+var itc 	= require("../"),
+	Report  = itc.Report;
 
 // Connect to iTunes
-var itunes = new iTunesConnect('apple@id.com', 'password');
+var itunesconnect = new itc.Connect('apple@id.com', 'password');
 
 // Simple ranked report
-itunes.request(ReportQuery.ranked().time(10, 'days'), function(error, result) {
+itunesconnect.request(Report.ranked().time(10, 'days'), function(error, result) {
 	console.log(result);
 });
 
 // More complex query
-var advancedQuery = ReportQuery('timed', {
-	start 	: '2014-01-10',
-	end 	: '2014-08-01',
+var advancedQuery = Report('timed', {
 	limit 	: 100,
 	filters : {
-		transaction: Constants.Free,
 		type: [
-			Constants.InApp, 
-			Constants.App
+			itc.Type.InApp,
+			itc.Type.App
 		]
 	},
 	group: 'content'
-});
+}).time(2, 'days');
 
 itunes.request(advancedQuery, function(error, result) {
 	console.log(result);

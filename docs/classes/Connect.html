@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>iTunesConnect - itc-report</title>
+    <title>Connect - itunesconnect</title>
     <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
     <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
     <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
@@ -15,7 +15,7 @@
     <div id="hd" class="yui3-g header">
         <div class="yui3-u-3-4">
             
-                <h1><img src="../assets/css/logo.png" title="itc-report"></h1>
+                <h1><img src="../assets/css/logo.png" title="itunesconnect"></h1>
             
         </div>
         <div class="yui3-u-1-4 version">
@@ -41,19 +41,17 @@
         <div id="api-tabview-panel">
             <ul id="api-classes" class="apis classes">
             
-                <li><a href="../classes/Constants.html">Constants</a></li>
-            
-                <li><a href="../classes/iTunesConnect.html">iTunesConnect</a></li>
+                <li><a href="../classes/Connect.html">Connect</a></li>
             
                 <li><a href="../classes/Query.html">Query</a></li>
             
-                <li><a href="../classes/ReportQuery.html">ReportQuery</a></li>
+                <li><a href="../classes/Report.html">Report</a></li>
             
             </ul>
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="../modules/itc-report.html">itc-report</a></li>
+                <li><a href="../modules/itunesconnect.html">itunesconnect</a></li>
             
             </ul>
         </div>
@@ -90,7 +88,7 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>iTunesConnect Class</h1>
+                        <h1>Connect Class</h1>
 <div class="box meta">
     
 
@@ -98,13 +96,13 @@
 
     
         <div class="foundat">
-            Defined in: <a href="../files/index.js.html#l91"><code>index.js:91</code></a>
+            Defined in: <a href="../files/index.js.html#l76"><code>index.js:76</code></a>
         </div>
     
 
     
         
-            Module: <a href="../modules/itc-report.html">itc-report</a>
+            Module: <a href="../modules/itunesconnect.html">itunesconnect</a>
         
     
 
@@ -114,17 +112,17 @@
 
 
 <div class="box intro">
-    <p>Initialize a new <code>iTunesConnect</code> with the given <code>username</code>, <code>password</code> and <code>options</code>.</p>
+    <p>Initialize a new <code>Connect</code> with the given <code>username</code>, <code>password</code> and <code>options</code>.</p>
 <p>Examples:</p>
 <pre class="code prettyprint"><code>// Import itc-report
-var iTunesConnect     = require(&quot;itc-report&quot;),
-    ReportQuery       = iTunesConnect.ReportQuery;
+var itc     = require(&quot;itunesconnect&quot;),
+    Report  = itc.Report;
 
 // Init new iTunes Connect
-var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;);
+var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;);
 
 // Init new iTunes Connect
-var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
+var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;, {
     errorCallback: function(error) {
         console.log(error);
     },
@@ -136,8 +134,8 @@ var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
 
     <div class="constructor">
         <h2>Constructor</h2>
-        <div id="method_iTunesConnect" class="method item">
-    <h3 class="name"><code>iTunesConnect</code></h3>
+        <div id="method_Connect" class="method item">
+    <h3 class="name"><code>Connect</code></h3>
 
     
         <div class="args">
@@ -190,7 +188,7 @@ var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l91"><code>index.js:91</code></a>
+        <a href="../files/index.js.html#l76"><code>index.js:76</code></a>
         
         </p>
 
@@ -450,7 +448,7 @@ var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l218"><code>index.js:218</code></a>
+        <a href="../files/index.js.html#l203"><code>index.js:203</code></a>
         
         </p>
 
@@ -561,7 +559,7 @@ var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l261"><code>index.js:261</code></a>
+        <a href="../files/index.js.html#l246"><code>index.js:246</code></a>
         
         </p>
 
@@ -666,7 +664,7 @@ var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l184"><code>index.js:184</code></a>
+        <a href="../files/index.js.html#l169"><code>index.js:169</code></a>
         
         </p>
 
@@ -680,11 +678,11 @@ var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;, {
         <p>Fetch iTunes Connect Reporting metadata with given <code>completed</code> callback.</p>
 <p>Examples:</p>
 <pre class="code prettyprint"><code>// Import itc-report
-var iTunesConnect     = require(&quot;itc-report&quot;),
-    ReportQuery       = iTunesConnect.ReportQuery;
+var itc     = require(&quot;itunesconnect&quot;),
+    Report  = itc.Report;
 
 // Init new iTunes Connect
-var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;);
+var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;);
 
 // Fetch API Metadata
 itunes.metadata(function(error, result) {
@@ -821,7 +819,7 @@ itunes.metadata(function(error, result) {
             
         
         
-        <a href="../files/index.js.html#l147"><code>index.js:147</code></a>
+        <a href="../files/index.js.html#l132"><code>index.js:132</code></a>
         
         </p>
 
@@ -835,14 +833,14 @@ itunes.metadata(function(error, result) {
         <p>Request iTunes Connect report with the given <code>query</code> and <code>completed</code> callback.</p>
 <p>Examples:</p>
 <pre class="code prettyprint"><code>// Import itc-report
-var iTunesConnect     = require(&quot;itc-report&quot;),
-    ReportQuery       = iTunesConnect.ReportQuery;
+var itc     = require(&quot;itunesconnect&quot;),
+    Report  = itc.Report;
 
 // Init new iTunes Connect
-var itunes = new iTunesConnect(&#39;apple@id.com&#39;, &#39;password&#39;);
+var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;);
 
 // Request timed report from yesterday to today
-itunes.request(ReportQuery.timed().time(1, &#39;day&#39;), function(error, result) {
+itunes.request(Report.timed().time(1, &#39;day&#39;), function(error, result) {
     console.log(result);
 })</code></pre>
 

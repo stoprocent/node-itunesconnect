@@ -1,20 +1,18 @@
-var should			= require('should'),
-	moment			= require('moment')
-	iTunesConnect 	= require("../"),
-	ReportQuery   	= iTunesConnect.ReportQuery;
-	Constants 		= iTunesConnect.Constants;
+var should		= require('should'),
+	moment		= require('moment')
+	itc 		= require("../"),
+	Report		= itc.Report;
 
-
-describe('ReportQuery', function(){
+describe('Report', function(){
 	describe('Constructor', function(){
 		it('should have a type of timed', function(done){
-			var query = ReportQuery('timed');
+			var query = Report('timed');
 			query.type.should.equal('timed');
 			done();
 		})
 
 		it('should have a type of ranked', function(done){
-			var query = ReportQuery('ranked');
+			var query = Report('ranked');
 			query.type.should.equal('ranked');
 			done();
 		})
@@ -22,7 +20,7 @@ describe('ReportQuery', function(){
 
 	describe('timed()', function(){
 		it('should have a type of timed', function(done){
-			var query = ReportQuery.timed();
+			var query = Report.timed();
 			query.type.should.equal('timed');
 			done();
 		})
@@ -30,19 +28,19 @@ describe('ReportQuery', function(){
 
 	describe('ranked()', function(){
 		it('should have a type of ranked', function(done){
-			var query = ReportQuery.ranked();
+			var query = Report.ranked();
 			query.type.should.equal('ranked');
 			done();
 		})
 
 		it('should have a default group property', function(done){
-			var query = ReportQuery.ranked();
+			var query = Report.ranked();
 			query.config.group.should.not.equal(null);
 			done();
 		})
 
 		it('should have properties start and end', function(done){
-			var query = ReportQuery.ranked();
+			var query = Report.ranked();
 			query.config.should.have.properties('start', 'end');
 			done();
 		})
@@ -50,7 +48,7 @@ describe('ReportQuery', function(){
 		describe('when query object is given', function(){
 
 			it('should have a property limit', function(done){
-				var query = ReportQuery.ranked({
+				var query = Report.ranked({
 					limit: 10
 				});
 				query.config.limit.should.equal(10);
@@ -58,14 +56,14 @@ describe('ReportQuery', function(){
 			})
 
 			it('should overwrite default group property', function(done){
-				var query = ReportQuery.ranked({group: 'location'});
+				var query = Report.ranked({group: 'location'});
 				query.config.group.should.not.equal('content');
 				done();
 			})
 
 			describe('group()', function(){
 				it('should overwrite query group value', function(done){
-					var query = ReportQuery.ranked({group: 'location'}).group('category');
+					var query = Report.ranked({group: 'location'}).group('category');
 					query.config.group.should.equal('category');
 					done();
 				})
@@ -76,7 +74,7 @@ describe('ReportQuery', function(){
 	describe('body()', function(){
 		it('should not throw error when query is empty', function(done){
 			(function(){
-			  ReportQuery.timed().body();
+			  Report.timed().body();
 			}).should.not.throwError();
 			done();
 		})
@@ -84,7 +82,7 @@ describe('ReportQuery', function(){
 		describe('when query object is given with filters property', function() {
 			it('should throw error when filters property is array', function(done) {
 				(function(){
-			  		ReportQuery.timed({
+			  		Report.timed({
 			  			filters: [1]
 			  		}).body();
 				}).should.throwError();
@@ -93,7 +91,7 @@ describe('ReportQuery', function(){
 
 			it('should throw error when filters property is string', function(done) {
 				(function(){
-			  		ReportQuery.timed({
+			  		Report.timed({
 			  			filters: "filter"
 			  		}).body();
 				}).should.throwError();
@@ -101,14 +99,14 @@ describe('ReportQuery', function(){
 			})
 			
 			it('should have correct filters property', function(done) {
-				var query = ReportQuery.ranked({
+				var query = Report.ranked({
 					filters : {
 						content: [1,2,3],
 						location: [4,5,6],
-						transaction: Constants.Free,
+						transaction: itc.Transaction.Free,
 						type: [
-							Constants.InApp, 
-							Constants.App
+							itc.Type.InApp, 
+							itc.Type.App
 						],
 						category: 7
 					}
@@ -124,10 +122,10 @@ describe('ReportQuery', function(){
 				        "option_keys": [4, 5, 6]
 				    }, {
 				        "dimension_key": "transaction_type",
-				        "option_keys": [Constants.Free]
+				        "option_keys": [itc.Transaction.Free]
 				    }, {
 				        "dimension_key": "content_type",
-				        "option_keys": [Constants.InApp, Constants.App]
+				        "option_keys": [itc.Type.InApp, itc.Type.App]
 				    }, {
 				        "dimension_key": "Category",
 				        "option_keys": [7]
@@ -140,7 +138,7 @@ describe('ReportQuery', function(){
 
 	describe('time()', function(){
 		it('should have start value as moment object', function(done){
-			var query = ReportQuery.timed().date('2014-10-02').time(1, 'day')
+			var query = Report.timed().date('2014-10-02').time(1, 'day')
 			query.body();
 
 			moment.isMoment(query.config.start).should.be.true;
@@ -148,7 +146,7 @@ describe('ReportQuery', function(){
 		})
 
 		it('should have end value as moment object', function(done){
-			var query = ReportQuery.timed().date('2014-10-02').time(1, 'day')
+			var query = Report.timed().date('2014-10-02').time(1, 'day')
 			query.body();
 
 			moment.isMoment(query.config.end).should.be.true;
@@ -156,28 +154,28 @@ describe('ReportQuery', function(){
 		})
 
 		it('should have start value one day before end date', function(done){
-			var query = ReportQuery.timed().date('2014-10-02').time(1, 'day')
+			var query = Report.timed().date('2014-10-02').time(1, 'day')
 			query.body();
 
 			query.config.start.format('YYYY-MM-DD').should.equal('2014-10-01');
 			done();
 		})
 		it('should have start value one week before end date', function(done){
-			var query = ReportQuery.timed().date('2014-10-08').time(1, 'week')
+			var query = Report.timed().date('2014-10-08').time(1, 'week')
 			query.body();
 
 			query.config.start.format('YYYY-MM-DD').should.equal('2014-10-01');
 			done();
 		})
 		it('should have start value 2 months before end date', function(done){
-			var query = ReportQuery.timed().date('2014-10-02').time(2, 'months')
+			var query = Report.timed().date('2014-10-02').time(2, 'months')
 			query.body();
 
 			query.config.start.format('YYYY-MM-DD').should.equal('2014-08-02');
 			done();
 		})
 		it('should have start value 3 years before end date', function(done){
-			var query = ReportQuery.timed().date('2014-10-02').time(3, 'years')
+			var query = Report.timed().date('2014-10-02').time(3, 'years')
 			query.body();
 
 			query.config.start.format('YYYY-MM-DD').should.equal('2011-10-02');

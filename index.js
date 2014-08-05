@@ -4,6 +4,10 @@
 //! license : MIT
 //! github.com/stoprocent/itc-report
 
+/*
+* Module dependencies.
+*/
+
 var async 	= require('async');
 	request = require('request'),
 	cheerio = require('cheerio'),
@@ -13,102 +17,83 @@ var async 	= require('async');
 	_		= require('underscore');
 
 /**
-* @module itc-report
+* @module itunesconnect
 */
 
 /*
-* Expose `iTunesConnect`
+* Expose `Connect`
 */
 
-exports = module.exports = iTunesConnect;
+exports.Connect = Connect;
 
 /*
-* Expose `ReportQuery`.
+* Expose `Report`.
 */
 
-exports.ReportQuery = ReportQuery;
+exports.Report = Report;
+
+/*
+* Expose `Type`.
+*/
+
+exports.Type = {
+	InApp 	: "IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ",
+	App 	: "1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4"
+} 
+
+/*
+* Expose `Transaction`.
+*/
+
+exports.Transaction = {
+	Free 		: "1, 2, 3, 4",
+	Paid 		: "5, 6, 7, 8, 9, 54",
+	Redownload 	: "1001, 1005, 1006",
+	Update 		: "1002",
+	Refund 		: "1003"
+}
+
+/*
+* Expose `Platform`.
+*/
+
+exports.Platform = {
+	Desktop : "Windows, Macintosh, UNKNOWN",
+	iPhone 	: "iPhone",
+	iPad 	: "iPad",
+	iPod 	: "iPod",
+}
+
+/*
+* Expose `Measure`.
+*/
+
+exports.Measure = {
+	Proceeds	: "Royalty",
+	Units 		: "units"
+}
 
 /**
-* Static constants to make it easier to build query
+* Initialize a new `Connect` with the given `username`, `password` and `options`.
 *
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
-*		Constants 		= iTunesConnect.Constants;
-*
-*	// Possible Types 
-*	Constants.InApp // In-App Purchases
-*	Constants.App // App Purchases
-*
-*	// Possible Transactions 
-*	Constants.Free
-*	Constants.Paid 
-*	Constants.Redownload
-*	Constants.Update
-*	Constants.Refund 
-*
-* 	// Possible Platforms
-*	Constants.Desktop
-*	Constants.iPhone 
-*	Constants.iPad 
-*	Constants.iPod
-*
-*	// Possible Measures
-*	Constants.Proceeds // How much moooooooneeeey
-*	Constants.Units // How many units 
-*	
-* @class Constants
-*
-*/
-var Constants = {
-	// Types
-	InApp				: "IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ",
-	App  				: "1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4",
-	// Transactions
-	Free 				: "1, 2, 3, 4",
-	Paid 				:  "5, 6, 7, 8, 9, 54",
-	Redownload 			: "1001, 1005, 1006",
-	Update 				: "1002",
-	Refund 				: "1003",
-	// Platforms
-	Desktop 			: "Windows, Macintosh, UNKNOWN",
-	iPhone 				: "iPhone",
-	iPad 				: "iPad",
-	iPod 				: "iPod",
-	// Measures
-	Proceeds 			: "Royalty",
-	Units 				: "units"
-};
-
-/*
-* Expose `Constants`.
-*/
-
-exports.Constants = Constants;
-
-/**
-* Initialize a new `iTunesConnect` with the given `username`, `password` and `options`.
-*
-* Examples:
-*
-*	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require("itunesconnect"),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password');
+*	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password', {
+*	var itunes = new itc.Connect('apple@id.com', 'password', {
 *		errorCallback: function(error) {
 *			console.log(error);
 *		},
 *		concurrentRequests: 1
 *	});
 *	
-* @class iTunesConnect
+* @class Connect
 * @constructor
 * @param {String} username Apple ID login
 * @param {String} password Apple ID password
@@ -119,10 +104,10 @@ exports.Constants = Constants;
 * @param {Function} [options.errorCallback] Error callback function called when requests are failing
 */
 
-function iTunesConnect(username, password, options) {
+function Connect(username, password, options) {
 	// Default Options
 	this.options = {
-		baseURL				: "https://itunesconnect.apple.com",
+		baseURL				: "https://Connect.apple.com",
 		apiURL				: "https://reportingitc2.apple.com/api/",
 		concurrentRequests	: 2,
 		errorCallback		: function(e) {}
@@ -150,19 +135,19 @@ function iTunesConnect(username, password, options) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require("itunesconnect"),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password');
+*	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Request timed report from yesterday to today
-*	itunes.request(ReportQuery.timed().time(1, 'day'), function(error, result) {
+*	itunes.request(Report.timed().time(1, 'day'), function(error, result) {
 *		console.log(result);
 *	})
 *	
 * @method request
-* @for iTunesConnect
+* @for Connect
 * @param {Query} query
 * @param {Function} completed
 * @param {Error} completed.error Just an error if occure
@@ -171,7 +156,7 @@ function iTunesConnect(username, password, options) {
 * @chainable
 */
 
-iTunesConnect.prototype.request = function(query, completed) {
+Connect.prototype.request = function(query, completed) {
 	// Push request to queue
 	this._queue.push({
 		query: query, 
@@ -187,11 +172,11 @@ iTunesConnect.prototype.request = function(query, completed) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require("itunesconnect"),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password');
+*	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Fetch API Metadata
 *	itunes.metadata(function(error, result) {
@@ -199,15 +184,15 @@ iTunesConnect.prototype.request = function(query, completed) {
 *	})
 *	
 * @method metadata
-* @for iTunesConnect
-* @for iTunesConnect
+* @for Connect
+* @for Connect
 * @param {Function} completed
 * @param {Error} completed.error Just an error if occure
 * @param {Object} completed.result Metadata result 
 * @param {Object} [completed.query] Query that was sent
 */
 
-iTunesConnect.prototype.metadata = function(completed) {
+Connect.prototype.metadata = function(completed) {
 	var query = {
 		body: function(){},
 		endpoint: "all_metadata"
@@ -220,12 +205,12 @@ iTunesConnect.prototype.metadata = function(completed) {
 *
 * @private
 * @method executeRequest
-* @for iTunesConnect
+* @for Connect
 * @param {Object} task
 * @param {Function} callback
 */
 
-iTunesConnect.prototype.executeRequest = function(task, callback) {
+Connect.prototype.executeRequest = function(task, callback) {
 	var query = task.query;
 	var completed = task.completed;
 	// Keep request body for callback
@@ -263,12 +248,12 @@ iTunesConnect.prototype.executeRequest = function(task, callback) {
 *
 * @private
 * @method login
-* @for iTunesConnect
+* @for Connect
 * @param {String} username Apple ID login
 * @param {String} password Apple ID password
 */
 
-iTunesConnect.prototype.login = function(username, password) {
+Connect.prototype.login = function(username, password) {
 	var self = this;
 	// Request ITC to get fresh post action
 	request.get(this.options.baseURL, function(error, response, body) {
@@ -308,38 +293,37 @@ iTunesConnect.prototype.login = function(username, password) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
-*		Constants 		= iTunesConnect.Constants;
+*	var itc 	= require("itunesconnect"),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password');
+*	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Timed type query
-*	var query = ReportQuery('timed');
+*	var query = Report('timed');
 *	
 *	// Ranked type query with config object
-*	var query = ReportQuery('ranked', { limit: 100 });	
+*	var query = Report('ranked', { limit: 100 });	
 *
 *	// Advanced Example
-*	var advancedQuery = ReportQuery('timed', {
+*	var advancedQuery = Report('timed', {
 *		start 	: '2014-04-08',
 *		end 	: '2014-04-25',
 *		limit 	: 100,
 *		filters : {
 *			content: [{AppID}, {AppID}, {AppID}],
 *			location: [{LocationID}, {LocationID}],
-*			transaction: Constants.Free,
+*			transaction: itc.Transaction.Free,
 *			type: [
-*				Constants.InApp, 
-*				Constants.App
+*				itc.Type.InApp, 
+*				itc.Type.App
 *			],
 *			category: {CategoryID}
 *		},
 *		group: 'content'
 *	});	
 *	
-* @class ReportQuery
+* @class Report
 * @constructor
 * @param {String} <type>
 * @param {Object} [config]
@@ -370,10 +354,10 @@ iTunesConnect.prototype.login = function(username, password) {
 * @return {Query}
 */
 
-function ReportQuery(type, config) {
+function Report(type, config) {
 	var fn = Query.prototype[type];
 	if(typeof fn !== 'function') {
-		throw new Error('Unknown ReportQuery type: ' + type);
+		throw new Error('Unknown Report type: ' + type);
 	}
 	return new Query(config)[type]();
 }
@@ -384,28 +368,28 @@ function ReportQuery(type, config) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require("itunesconnect"),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password');
+*	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Ranked type query
-*	var query = ReportQuery.ranked();
+*	var query = Report.ranked();
 *
 *	// Another query
-*	var otherQuery = ReportQuery.ranked({
+*	var otherQuery = Report.ranked({
 *		limit: 10
 *	});	
 *	
 * @method ranked
-* @for ReportQuery
+* @for Report
 * @param {Object} [config]
 * @chainable
 * @return {Query}
 */
 
-ReportQuery.ranked = function(config) {
+Report.ranked = function(config) {
 	return new Query(config).ranked();
 }
 
@@ -415,33 +399,59 @@ ReportQuery.ranked = function(config) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 		= require("itunesconnect"),
+*		Report   	= itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect('apple@id.com', 'password');
+*	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Timed type query
-*	var query = ReportQuery.timed();
+*	var query = Report.timed();
 *
 *	// Another query
-*	var otherQuery = ReportQuery.timed({
+*	var otherQuery = Report.timed({
 *		limit: 10
 *	});	
 *	
 * @method timed
-* @for ReportQuery
+* @for Report
 * @param {Object} [config]
 * @chainable
 * @return {Query}
 */
 
-ReportQuery.timed = function(config) {
+Report.timed = function(config) {
 	return new Query(config).timed();
 }
 
 /**
 * Initialize a new `Query` with the given `query`.
+*
+* Constants to use with Query
+*
+*	// Import itc-report
+*	var itc = require("itunesconnect"),
+*	
+*	// Types
+* 	itc.Type.InApp 
+* 	itc.Type.App 
+* 	
+*	// Transactions
+* 	itc.Transaction.Free
+* 	itc.Transaction.Paid
+* 	itc.Transaction.Redownload
+* 	itc.Transaction.Update
+* 	itc.Transaction.Refund
+* 	
+*	// Platforms
+* 	itc.Platform.Desktop
+* 	itc.Platform.iPhone
+* 	itc.Platform.iPad
+* 	itc.Platform.iPod
+* 	
+*	// Measures
+* 	itc.Measure.Proceeds
+* 	itc.Measure.Units
 *
 * @class Query
 * @constructor
@@ -452,8 +462,8 @@ ReportQuery.timed = function(config) {
 */
 
 function Query(config) {
-	this.type   			= null;
-	this.endpoint 			= null;
+	this.type   	= null;
+	this.endpoint 	= null;
 
 	this.config = {
 		start 		: moment(),
@@ -471,7 +481,7 @@ function Query(config) {
 }
 
 /**
-* Builds and returns body for iTunesConnect request as JSON string
+* Builds and returns body for Connect request as JSON string
 *
 * @method body
 * @for Query
@@ -679,16 +689,16 @@ Query.prototype.content = function(value) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require("itc-report"),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require("itunesconnect"),
+*		Report  = itc.Report;
 *	
 *	// Query
-*	var query = ReportQuery.timed({
+*	var query = Report.timed({
 *		limit: 10
 *	}).category(6001);	
 *
 *	// Another Query
-*	var otherQuery = ReportQuery.timed({
+*	var otherQuery = Report.timed({
 *		limit: 10
 *	});
 *	// OK

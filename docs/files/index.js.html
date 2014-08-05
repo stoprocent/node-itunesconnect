@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>index.js - itc-report</title>
+    <title>index.js - itunesconnect</title>
     <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
     <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
     <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
@@ -15,7 +15,7 @@
     <div id="hd" class="yui3-g header">
         <div class="yui3-u-3-4">
             
-                <h1><img src="../assets/css/logo.png" title="itc-report"></h1>
+                <h1><img src="../assets/css/logo.png" title="itunesconnect"></h1>
             
         </div>
         <div class="yui3-u-1-4 version">
@@ -41,19 +41,17 @@
         <div id="api-tabview-panel">
             <ul id="api-classes" class="apis classes">
             
-                <li><a href="../classes/Constants.html">Constants</a></li>
-            
-                <li><a href="../classes/iTunesConnect.html">iTunesConnect</a></li>
+                <li><a href="../classes/Connect.html">Connect</a></li>
             
                 <li><a href="../classes/Query.html">Query</a></li>
             
-                <li><a href="../classes/ReportQuery.html">ReportQuery</a></li>
+                <li><a href="../classes/Report.html">Report</a></li>
             
             </ul>
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="../modules/itc-report.html">itc-report</a></li>
+                <li><a href="../modules/itunesconnect.html">itunesconnect</a></li>
             
             </ul>
         </div>
@@ -100,111 +98,96 @@
 //! license : MIT
 //! github.com/stoprocent/itc-report
 
+/*
+* Module dependencies.
+*/
+
 var async 	= require(&#x27;async&#x27;);
 	request = require(&#x27;request&#x27;),
 	cheerio = require(&#x27;cheerio&#x27;),
 	moment  = require(&#x27;moment&#x27;),
 	fs 		= require(&#x27;fs&#x27;),
-	path 	= require(&#x27;path&#x27;),
-	_ 		= require(&#x27;underscore&#x27;);
+	path	= require(&#x27;path&#x27;),
+	_		= require(&#x27;underscore&#x27;);
 
 /**
-* @module itc-report
+* @module itunesconnect
 */
 
 /*
-* Expose &#x60;iTunesConnect&#x60;
+* Expose &#x60;Connect&#x60;
 */
 
-exports = module.exports = iTunesConnect;
+exports.Connect = Connect;
 
 /*
-* Expose &#x60;ReportQuery&#x60;.
+* Expose &#x60;Report&#x60;.
 */
 
-exports.ReportQuery = ReportQuery;
+exports.Report = Report;
+
+/*
+* Expose &#x60;Type&#x60;.
+*/
+
+exports.Type = {
+	InApp 	: &quot;IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ&quot;,
+	App 	: &quot;1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4&quot;
+} 
+
+/*
+* Expose &#x60;Transaction&#x60;.
+*/
+
+exports.Transaction = {
+	Free 		: &quot;1, 2, 3, 4&quot;,
+	Paid 		: &quot;5, 6, 7, 8, 9, 54&quot;,
+	Redownload 	: &quot;1001, 1005, 1006&quot;,
+	Update 		: &quot;1002&quot;,
+	Refund 		: &quot;1003&quot;
+}
+
+/*
+* Expose &#x60;Platform&#x60;.
+*/
+
+exports.Platform = {
+	Desktop : &quot;Windows, Macintosh, UNKNOWN&quot;,
+	iPhone 	: &quot;iPhone&quot;,
+	iPad 	: &quot;iPad&quot;,
+	iPod 	: &quot;iPod&quot;,
+}
+
+/*
+* Expose &#x60;Measure&#x60;.
+*/
+
+exports.Measure = {
+	Proceeds	: &quot;Royalty&quot;,
+	Units 		: &quot;units&quot;
+}
 
 /**
-* Static constants to make it easier to build query
+* Initialize a new &#x60;Connect&#x60; with the given &#x60;username&#x60;, &#x60;password&#x60; and &#x60;options&#x60;.
 *
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
-*		Constants 		= iTunesConnect.Constants;
-*
-*	// Possible Types 
-*	Constants.InApp // In-App Purchases
-*	Constants.App // App Purchases
-*
-*	// Possible Transactions 
-*	Constants.Free
-*	Constants.Paid 
-*	Constants.Redownload
-*	Constants.Update
-*	Constants.Refund 
-*
-* 	// Possible Platforms
-*	Constants.Desktop
-*	Constants.iPhone 
-*	Constants.iPad 
-*	Constants.iPod
-*
-*	// Possible Measures
-*	Constants.Proceeds // How much moooooooneeeey
-*	Constants.Units // How many units 
-*	
-* @class Constants
-*
-*/
-var Constants = {
-	// Types
-	InApp				: &quot;IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ&quot;,
-	App  				: &quot;1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4&quot;,
-	// Transactions
-	Free 				: &quot;1, 2, 3, 4&quot;,
-	Paid 				:  &quot;5, 6, 7, 8, 9, 54&quot;,
-	Redownload 			: &quot;1001, 1005, 1006&quot;,
-	Update 				: &quot;1002&quot;,
-	Refund 				: &quot;1003&quot;,
-	// Platforms
-	Desktop 			: &quot;Windows, Macintosh, UNKNOWN&quot;,
-	iPhone 				: &quot;iPhone&quot;,
-	iPad 				: &quot;iPad&quot;,
-	iPod 				: &quot;iPod&quot;,
-	// Measures
-	Proceeds 			: &quot;Royalty&quot;,
-	Units 				: &quot;units&quot;
-};
-
-/*
-* Expose &#x60;Constants&#x60;.
-*/
-
-exports.Constants = Constants;
-
-/**
-* Initialize a new &#x60;iTunesConnect&#x60; with the given &#x60;username&#x60;, &#x60;password&#x60; and &#x60;options&#x60;.
-*
-* Examples:
-*
-*	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require(&quot;itunesconnect&quot;),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
 *
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;, {
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;, {
 *		errorCallback: function(error) {
 *			console.log(error);
 *		},
 *		concurrentRequests: 1
 *	});
 *	
-* @class iTunesConnect
+* @class Connect
 * @constructor
 * @param {String} username Apple ID login
 * @param {String} password Apple ID password
@@ -215,10 +198,10 @@ exports.Constants = Constants;
 * @param {Function} [options.errorCallback] Error callback function called when requests are failing
 */
 
-function iTunesConnect(username, password, options) {
+function Connect(username, password, options) {
 	// Default Options
 	this.options = {
-		baseURL				: &quot;https://itunesconnect.apple.com&quot;,
+		baseURL				: &quot;https://Connect.apple.com&quot;,
 		apiURL				: &quot;https://reportingitc2.apple.com/api/&quot;,
 		concurrentRequests	: 2,
 		errorCallback		: function(e) {}
@@ -246,19 +229,19 @@ function iTunesConnect(username, password, options) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require(&quot;itunesconnect&quot;),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
 *
 *	// Request timed report from yesterday to today
-*	itunes.request(ReportQuery.timed().time(1, &#x27;day&#x27;), function(error, result) {
+*	itunes.request(Report.timed().time(1, &#x27;day&#x27;), function(error, result) {
 *		console.log(result);
 *	})
 *	
 * @method request
-* @for iTunesConnect
+* @for Connect
 * @param {Query} query
 * @param {Function} completed
 * @param {Error} completed.error Just an error if occure
@@ -267,7 +250,7 @@ function iTunesConnect(username, password, options) {
 * @chainable
 */
 
-iTunesConnect.prototype.request = function(query, completed) {
+Connect.prototype.request = function(query, completed) {
 	// Push request to queue
 	this._queue.push({
 		query: query, 
@@ -283,11 +266,11 @@ iTunesConnect.prototype.request = function(query, completed) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require(&quot;itunesconnect&quot;),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
 *
 *	// Fetch API Metadata
 *	itunes.metadata(function(error, result) {
@@ -295,15 +278,15 @@ iTunesConnect.prototype.request = function(query, completed) {
 *	})
 *	
 * @method metadata
-* @for iTunesConnect
-* @for iTunesConnect
+* @for Connect
+* @for Connect
 * @param {Function} completed
 * @param {Error} completed.error Just an error if occure
 * @param {Object} completed.result Metadata result 
 * @param {Object} [completed.query] Query that was sent
 */
 
-iTunesConnect.prototype.metadata = function(completed) {
+Connect.prototype.metadata = function(completed) {
 	var query = {
 		body: function(){},
 		endpoint: &quot;all_metadata&quot;
@@ -316,12 +299,12 @@ iTunesConnect.prototype.metadata = function(completed) {
 *
 * @private
 * @method executeRequest
-* @for iTunesConnect
+* @for Connect
 * @param {Object} task
 * @param {Function} callback
 */
 
-iTunesConnect.prototype.executeRequest = function(task, callback) {
+Connect.prototype.executeRequest = function(task, callback) {
 	var query = task.query;
 	var completed = task.completed;
 	// Keep request body for callback
@@ -359,12 +342,12 @@ iTunesConnect.prototype.executeRequest = function(task, callback) {
 *
 * @private
 * @method login
-* @for iTunesConnect
+* @for Connect
 * @param {String} username Apple ID login
 * @param {String} password Apple ID password
 */
 
-iTunesConnect.prototype.login = function(username, password) {
+Connect.prototype.login = function(username, password) {
 	var self = this;
 	// Request ITC to get fresh post action
 	request.get(this.options.baseURL, function(error, response, body) {
@@ -404,38 +387,37 @@ iTunesConnect.prototype.login = function(username, password) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
-*		Constants 		= iTunesConnect.Constants;
+*	var itc 	= require(&quot;itunesconnect&quot;),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
 *
 *	// Timed type query
-*	var query = ReportQuery(&#x27;timed&#x27;);
+*	var query = Report(&#x27;timed&#x27;);
 *	
 *	// Ranked type query with config object
-*	var query = ReportQuery(&#x27;ranked&#x27;, { limit: 100 });	
+*	var query = Report(&#x27;ranked&#x27;, { limit: 100 });	
 *
 *	// Advanced Example
-*	var advancedQuery = ReportQuery(&#x27;timed&#x27;, {
+*	var advancedQuery = Report(&#x27;timed&#x27;, {
 *		start 	: &#x27;2014-04-08&#x27;,
 *		end 	: &#x27;2014-04-25&#x27;,
 *		limit 	: 100,
 *		filters : {
 *			content: [{AppID}, {AppID}, {AppID}],
 *			location: [{LocationID}, {LocationID}],
-*			transaction: Constants.Free,
+*			transaction: itc.Transaction.Free,
 *			type: [
-*				Constants.InApp, 
-*				Constants.App
+*				itc.Type.InApp, 
+*				itc.Type.App
 *			],
 *			category: {CategoryID}
 *		},
 *		group: &#x27;content&#x27;
 *	});	
 *	
-* @class ReportQuery
+* @class Report
 * @constructor
 * @param {String} &lt;type&gt;
 * @param {Object} [config]
@@ -466,10 +448,10 @@ iTunesConnect.prototype.login = function(username, password) {
 * @return {Query}
 */
 
-function ReportQuery(type, config) {
+function Report(type, config) {
 	var fn = Query.prototype[type];
 	if(typeof fn !== &#x27;function&#x27;) {
-		throw new Error(&#x27;Unknown ReportQuery type: &#x27; + type);
+		throw new Error(&#x27;Unknown Report type: &#x27; + type);
 	}
 	return new Query(config)[type]();
 }
@@ -480,28 +462,28 @@ function ReportQuery(type, config) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require(&quot;itunesconnect&quot;),
+*		Report  = itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
 *
 *	// Ranked type query
-*	var query = ReportQuery.ranked();
+*	var query = Report.ranked();
 *
 *	// Another query
-*	var otherQuery = ReportQuery.ranked({
+*	var otherQuery = Report.ranked({
 *		limit: 10
 *	});	
 *	
 * @method ranked
-* @for ReportQuery
+* @for Report
 * @param {Object} [config]
 * @chainable
 * @return {Query}
 */
 
-ReportQuery.ranked = function(config) {
+Report.ranked = function(config) {
 	return new Query(config).ranked();
 }
 
@@ -511,33 +493,59 @@ ReportQuery.ranked = function(config) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 		= require(&quot;itunesconnect&quot;),
+*		Report   	= itc.Report;
 *	
 *	// Init new iTunes Connect
-*	var itunes = new iTunesConnect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
+*	var itunes = new itc.Connect(&#x27;apple@id.com&#x27;, &#x27;password&#x27;);
 *
 *	// Timed type query
-*	var query = ReportQuery.timed();
+*	var query = Report.timed();
 *
 *	// Another query
-*	var otherQuery = ReportQuery.timed({
+*	var otherQuery = Report.timed({
 *		limit: 10
 *	});	
 *	
 * @method timed
-* @for ReportQuery
+* @for Report
 * @param {Object} [config]
 * @chainable
 * @return {Query}
 */
 
-ReportQuery.timed = function(config) {
+Report.timed = function(config) {
 	return new Query(config).timed();
 }
 
 /**
 * Initialize a new &#x60;Query&#x60; with the given &#x60;query&#x60;.
+*
+* Constants to use with Query
+*
+*	// Import itc-report
+*	var itc = require(&quot;itunesconnect&quot;),
+*	
+*	// Types
+* 	itc.Type.InApp 
+* 	itc.Type.App 
+* 	
+*	// Transactions
+* 	itc.Transaction.Free
+* 	itc.Transaction.Paid
+* 	itc.Transaction.Redownload
+* 	itc.Transaction.Update
+* 	itc.Transaction.Refund
+* 	
+*	// Platforms
+* 	itc.Platform.Desktop
+* 	itc.Platform.iPhone
+* 	itc.Platform.iPad
+* 	itc.Platform.iPod
+* 	
+*	// Measures
+* 	itc.Measure.Proceeds
+* 	itc.Measure.Units
 *
 * @class Query
 * @constructor
@@ -548,8 +556,8 @@ ReportQuery.timed = function(config) {
 */
 
 function Query(config) {
-	this.type   			= null;
-	this.endpoint 			= null;
+	this.type   	= null;
+	this.endpoint 	= null;
 
 	this.config = {
 		start 		: moment(),
@@ -567,7 +575,7 @@ function Query(config) {
 }
 
 /**
-* Builds and returns body for iTunesConnect request as JSON string
+* Builds and returns body for Connect request as JSON string
 *
 * @method body
 * @for Query
@@ -775,16 +783,16 @@ Query.prototype.content = function(value) {
 * Examples:
 *
 *	// Import itc-report
-*	var iTunesConnect 	= require(&quot;itc-report&quot;),
-*		ReportQuery   	= iTunesConnect.ReportQuery;
+*	var itc 	= require(&quot;itunesconnect&quot;),
+*		Report  = itc.Report;
 *	
 *	// Query
-*	var query = ReportQuery.timed({
+*	var query = Report.timed({
 *		limit: 10
 *	}).category(6001);	
 *
 *	// Another Query
-*	var otherQuery = ReportQuery.timed({
+*	var otherQuery = Report.timed({
 *		limit: 10
 *	});
 *	// OK

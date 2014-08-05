@@ -1,18 +1,17 @@
 YUI.add("yuidoc-meta", function(Y) {
    Y.YUIDoc = { meta: {
     "classes": [
-        "Constants",
+        "Connect",
         "Query",
-        "ReportQuery",
-        "iTunesConnect"
+        "Report"
     ],
     "modules": [
-        "itc-report"
+        "itunesconnect"
     ],
     "allModules": [
         {
-            "displayName": "itc-report",
-            "name": "itc-report"
+            "displayName": "itunesconnect",
+            "name": "itunesconnect"
         }
     ]
 } };

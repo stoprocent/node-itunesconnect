@@ -14,8 +14,8 @@ var advancedQuery = Report('timed', {
 	limit 	: 100,
 	filters : {
 		type: [
-			itc.Type.InApp,
-			itc.Type.App
+			itc.type.inapp,
+			itc.type.app
 		]
 	},
 	group: 'content'

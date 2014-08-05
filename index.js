@@ -36,41 +36,41 @@ exports.Report = Report;
 * Expose `Type`.
 */
 
-exports.Type = {
-	InApp 	: "IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ",
-	App 	: "1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4"
+exports.type = {
+	inapp 	: "IA0, IA1, IA4, IA9, IAA, IAC, IAW, IAY, IA3, IA6, IAB, IAD, IAX, IAZ",
+	app 	: "1E, 1EP, 1EU,1F,1T, 4E, 4EP, 4EU, 4F, 4T, 7, 8, 7F, 7T, 8F, 8T, 2, 3, 5, 6, 2F, 2T, 3F, 3T, 5F, 5T, 6F, 6T, 1, 4"
 } 
 
 /*
 * Expose `Transaction`.
 */
 
-exports.Transaction = {
-	Free 		: "1, 2, 3, 4",
-	Paid 		: "5, 6, 7, 8, 9, 54",
-	Redownload 	: "1001, 1005, 1006",
-	Update 		: "1002",
-	Refund 		: "1003"
+exports.transaction = {
+	free 		: "1, 2, 3, 4",
+	paid 		: "5, 6, 7, 8, 9, 54",
+	redownload 	: "1001, 1005, 1006",
+	update 		: "1002",
+	refund 		: "1003"
 }
 
 /*
 * Expose `Platform`.
 */
 
-exports.Platform = {
-	Desktop : "Windows, Macintosh, UNKNOWN",
-	iPhone 	: "iPhone",
-	iPad 	: "iPad",
-	iPod 	: "iPod",
+exports.platform = {
+	desktop : "Windows, Macintosh, UNKNOWN",
+	iphone 	: "iPhone",
+	ipad 	: "iPad",
+	ipod 	: "iPod",
 }
 
 /*
 * Expose `Measure`.
 */
 
-exports.Measure = {
-	Proceeds	: "Royalty",
-	Units 		: "units"
+exports.measure = {
+	proceeds	: "Royalty",
+	units 		: "units"
 }
 
 /**
@@ -107,10 +107,11 @@ exports.Measure = {
 function Connect(username, password, options) {
 	// Default Options
 	this.options = {
-		baseURL				: "https://Connect.apple.com",
+		baseURL				: "https://itunesconnect.apple.com",
 		apiURL				: "https://reportingitc2.apple.com/api/",
 		concurrentRequests	: 2,
-		errorCallback		: function(e) {}
+		errorCallback		: function(e) {},
+		loginCallback		: function(c) {}
 	};
 	// Extend options
 	_.extend(this.options, options);
@@ -125,8 +126,15 @@ function Connect(username, password, options) {
 	);
 	// Pasue queue and wait for login to complete
 	this._queue.pause();
+
 	// Login to iTunes Connect
-	this.login(username, password);
+	if(typeof this.options["cookies"] !== 'undefined') {
+		this._cookies = this.options.cookies;
+		this._queue.resume();
+	}
+	else {
+		this.login(username, password);
+	}
 }
 
 /**
@@ -279,8 +287,10 @@ Connect.prototype.login = function(username, password) {
 				this.options.errorCallback( error );
 			}
 			else { 
-				// Set Cookies and emit event
+				// Set _cookies and run callback
 				self._cookies = cookies;
+				self.options.loginCallback(cookies);
+				// Start requests queue
 				self._queue.resume();
 			}
 		});
@@ -433,25 +443,25 @@ Report.timed = function(config) {
 *	var itc = require("itunesconnect"),
 *	
 *	// Types
-* 	itc.Type.InApp 
-* 	itc.Type.App 
+* 	itc.type.inapp 
+* 	itc.type.app 
 * 	
 *	// Transactions
-* 	itc.Transaction.Free
-* 	itc.Transaction.Paid
-* 	itc.Transaction.Redownload
-* 	itc.Transaction.Update
-* 	itc.Transaction.Refund
+* 	itc.transaction.free
+* 	itc.transaction.paid
+* 	itc.transaction.redownload
+* 	itc.transaction.update
+* 	itc.transaction.refund
 * 	
 *	// Platforms
-* 	itc.Platform.Desktop
-* 	itc.Platform.iPhone
-* 	itc.Platform.iPad
-* 	itc.Platform.iPod
+* 	itc.platform.desktop
+* 	itc.platform.iphone
+* 	itc.platform.ipad
+* 	itc.platform.ipod
 * 	
 *	// Measures
-* 	itc.Measure.Proceeds
-* 	itc.Measure.Units
+* 	itc.measure.proceeds
+* 	itc.measure.units
 *
 * @class Query
 * @constructor
@@ -497,6 +507,9 @@ Query.prototype.body = function() {
 	// If start and end date are same and time() was used in query calculate new start date
 	if (this.config.end.diff(this.config.start, 'days') === 0 && _.isArray(this._time)) {
 		this.config.start = this.config.start.subtract(this._time[0], this._time[1]);
+	}
+	else if (this.config.end.diff(this.config.start, 'days') < 0) {
+		this.config.start = this.config.end;
 	}
 
 	// Building body

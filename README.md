@@ -14,7 +14,7 @@
 
  There are 2 different report types, `ranked` and `timed`. 
  
- Ranked report is sorted by number of downloads and it can be filtered and grouped by one of the [types](#constants). Ranked report result contains just a number of sales and/or proceeds regardless of time frame. Ranked  is also ignoring `interval` option. Good use case for ranked report is to get summary of sales and/or proceeds in some time period. You can also use `filters` and `group` to make your query more advanced.
+ Ranked report is sorted by number of downloads and it can be filtered and grouped by one of the [constants](#constants). Ranked report result contains just a number of sales and/or proceeds regardless of time frame. Ranked  is also ignoring `interval` option. Good use case for ranked report is to get summary of sales and/or proceeds in some time period. You can also use `filters` and `group` to make your query more advanced.
  
  Timed report result is a little bit more detailed. It's not sorted by number of sales or proceeds. It's embedding objects with number of sales grouped by `interval` option. You should understand it more looking at the examples below. 
  
@@ -380,30 +380,80 @@ query.limit(100);
 
 ## query.measures
 
+*See [Constants](#constants) for available options*
+
+```js
+query.measures(itc.measure.units);
+query.measures([itc.measure.units, itc.measure.proceeds]);
+```
+
 # Filter Medthods
 
 *All filter methods take one parameter Value or Array of Values*
 
-**Please note **
-
 ## query.content
+
+*Content is taking Number or Array of Number (Application ID).*
+
+```js
+query.content(1);
+query.content([1, 2]);
+query.content([1, 2]).content(3);
+```
 
 ## query.category
 
+*Visit [Categories Cheet-Sheet](https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#categories) wiki page for available options*
+
+```js
+query.category(6001);
+query.category([6002, 6003]);
+query.category([6001, 6002]).category(6003);
+```
+
 ## query.location
+
+*Visit [Locations Cheet-Sheet](https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#countries) wiki page for available options*
+
+```js
+query.location(6001);
+query.location([6002, 6003]);
+query.location([6001, 6002]).location(6003);
+```
 
 ## query.platform
 
+*See [Constants](#constants) for available options*
+
+```js
+query.platform(itc.platform.desktop);
+query.platform([itc.platform.desktop, itc.platform.ipad]).platform(itc.platform.ipod);
+```
+
 ## query.transaction
 
+*See [Constants](#constants) for available options*
+
+```js
+query.transaction(itc.transaction.free);
+query.transaction([itc.transaction.free, itc.transaction.paid]).transaction(itc.transaction.refund);
+```
+
 ## query.type 
+
+*See [Constants](#constants) for available options*
+
+```js
+query.transaction(itc.type.app);
+query.transaction([itc.type.inapp, itc.type.app]);
+```
 
 
 # Links
 
  - [Documentation](http://stoprocent.github.io/node-itunesconnect/docs/)
- - [Countries Cheet-Sheet](https://github.com/LearnBoost/cli-table)
- - [Categories Cheet-Sheet](https://github.com/visionmedia/node-progress)
+ - [Locations Cheet-Sheet](https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#countries)
+ - [Categories Cheet-Sheet](https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#categories)
  - [examples](https://github.com/stoprocent/node-itunesconnect/tree/master/examples)
 
 # License 

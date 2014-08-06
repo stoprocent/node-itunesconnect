@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>bin/cli.js - itunesconnect</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            
+                <h1><img src="../assets/css/logo.png" title="itunesconnect"></h1>
+            
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: 0.0.1</em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="../classes/Connect.html">Connect</a></li>
+            
+                <li><a href="../classes/Query.html">Query</a></li>
+            
+                <li><a href="../classes/Report.html">Report</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="../modules/itunesconnect.html">itunesconnect</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: bin/cli.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+#!/usr/bin/env node
+
+/**
+* Script dependencies.
+*/
+
+var program = require(&#x27;commander&#x27;),
+	itc 	= require(&#x27;../&#x27;),
+	report 	= itc.Report,
+	moment 	= require(&#x27;moment&#x27;),
+	fs 		= require(&#x27;fs&#x27;),
+	path 	= require(&#x27;path&#x27;),
+	_ 		= require(&#x27;underscore&#x27;);
+
+/**
+* Options helpers
+*/
+var Helpers = {
+	cacheFile: path.join( ((process.platform.substr(0, 3) === &#x27;win&#x27;) ? process.env.HOMEPATH : process.env.HOME),  &quot;.itcreport&quot;),
+	translate: {
+		inapp: itc.type.inapp,
+		app: itc.type.app,
+
+		free: itc.transaction.free,
+		paid: itc.transaction.paid,
+		redownload: itc.transaction.redownload,
+		update: itc.transaction.update,
+		refund: itc.transaction.refund,
+
+		desktop: itc.platform.desktop,
+		iphone: itc.platform.iphone,
+		ipad: itc.platform.ipad,
+		ipod: itc.platform.ipod,
+
+		proceeds: itc.measure.proceeds,
+		units: itc.measure.units
+	}
+};
+
+Helpers.collectValues = function (value, collection) {
+	// All values are unique so for now its ok to do it this way :()
+	if (typeof Helpers.translate[value] !== &#x27;undefined&#x27;) {
+		collection.push(Helpers.translate[value]);
+		return collection;
+	}
+	console.error(&quot;\nUknown value: &quot; + value + &quot;\n&quot;);
+	process.exit(1);
+}
+
+Helpers.sinceDate = function(value) {
+	if(!!value.match(new RegExp(/([0-9]{4})-([0-9]{2})-([0-9]{2})/))) {
+		return value;
+	}
+	else {
+		var descMatch = value.match(new RegExp(/([0-9]+)([a-zA-Z]+)/));
+		if(!!descMatch)
+			return moment().subtract(descMatch[1], descMatch[2]).format(&#x27;YYYY-MM-DD&#x27;);
+	}
+	return false;
+}
+
+Helpers.configFile = function(value) {
+	var configFile = path.resolve(value);
+	if(fs.existsSync(configFile)) {
+		var config = fs.readFileSync(configFile, {encoding: &#x27;utf8&#x27;});
+		return JSON.parse(config);
+	}
+	else {
+		console.error(&quot;\nConfig file does not exist at path: &quot; + configFile + &quot;\n&quot;);
+		process.exit(1);
+	}
+}
+
+Helpers.processRequestResponse = function(error, result, outputfile) {
+	if(error) {
+		console.error(&quot;\n&quot; + error + &quot;\n&quot;);
+		process.exit(1);
+	}
+	if (outputfile === undefined) { 
+		console.log(JSON.stringify(result, null, 4));
+	}
+	else {
+		var outputFile = path.resolve(outputfile);
+		fs.writeFile(outputFile, JSON.stringify(result), function(error) {
+			if(error) {
+				console.error(&quot;\n&quot; + error + &quot;\n&quot;);
+				process.exit(1);
+			}
+		});
+	}
+}
+
+Helpers.request = function(p, call) {
+	var options = {
+		loginCallback: function(cookies) {
+			fs.writeFile(Helpers.cacheFile, JSON.stringify({
+				cookies: cookies, 
+				expire: moment().add(p.cachetime, &#x27;seconds&#x27;)
+			}));
+		}
+	};
+	// Requesting Cookies
+	if(fs.existsSync(Helpers.cacheFile) &amp;&amp; p.forcelogin === undefined &amp;&amp; !!p.username &amp;&amp; !!p.password) {
+		var cachedContent = fs.readFileSync(Helpers.cacheFile, {
+			encoding: &#x27;utf8&#x27;
+		});
+		var cache = JSON.parse(cachedContent);
+
+		if(moment().diff(cache.expire, &#x27;minutes&#x27;) &lt; 0) {
+			options.cookies = cache.cookies;
+		}
+	}
+	// Create itunes object
+	var itunes = new itc.Connect(p.username, p.password, options);
+	// Run callback
+	call(itunes);
+}
+
+/**
+* Config base
+*/
+
+var Config = {
+	filters: {}
+};
+
+/**
+* Config File Template
+*/
+
+var ConfigFileTemplate = &#x27;{\n\
+//     &quot;cachetime&quot;      : 1800,\n\
+     &quot;username&quot;       : &quot;&quot;,\n\
+     &quot;password&quot;       : &quot;&quot;,\n\
+//     &quot;since&quot;          : &quot;&quot;,\n\
+//     &quot;date&quot;           : &quot;&quot;,\n\
+//     &quot;group&quot;          : &quot;content&quot;,\n\
+//     &quot;content&quot;        : [],\n\
+//     &quot;location&quot;       : [],\n\
+//     &quot;category&quot;       : [],\n\
+//     &quot;platform&quot;       : [],\n\
+//     &quot;transaction&quot;    : [],\n\
+//     &quot;type&quot;           : [],\n\
+//     &quot;measure&quot;        : &quot;units&quot;,\n\
+//     &quot;outputfile&quot;     : &quot;&quot;\n\
+}&#x27;;
+
+/**
+* Setup program
+*/
+
+program
+	.version(&#x27;0.0.1&#x27;)
+	// Tool options
+	.option(&#x27;-c, --config &lt;filename&gt;&#x27;, &#x27;Specify config file&#x27;, Helpers.configFile, &quot;&quot;)
+	.option(&#x27;-h, --cachetime &lt;seconds&gt;&#x27;, &#x27;Specify cache time for session cookies. Defaulting to 1800.&#x27;, 1800)
+	.option(&#x27;-f, --forcelogin&#x27;, &#x27;Will ignore cached cookies and re-login.&#x27;, null, false)
+	// Login
+	.option(&#x27;-u, --username &lt;username&gt;&#x27;, &#x27;iTunes Connect Username (Apple ID)&#x27;)
+	.option(&#x27;-p, --password &lt;password&gt;&#x27;, &#x27;iTunes Connect Password&#x27;)
+	// Date options
+	.option(&#x27;-s, --since &lt;since&gt;&#x27;, &#x27;Specify since date. You can use format YYYY-MM-DD or simply 1day, 3months, 5weeks, 2years ...&#x27;, Helpers.sinceDate, false)
+	.option(&#x27;-d, --date &lt;date&gt;&#x27;, &#x27;Specify date (YYYY-MM-DD) Defaulting to today.&#x27;, moment().format(&#x27;YYYY-MM-DD&#x27;))
+	// Group
+	.option(&#x27;-g, --group &lt;group&gt;&#x27;, &#x27;Group results by one of the following: &#x27;)
+	// Filters
+	.option(&#x27;-A, --content &lt;contentid&gt;&#x27;, &#x27;Filter by Content ID. [Repeatable value]&#x27;, Helpers.collectValues, [])
+	.option(&#x27;-L, --location &lt;location&gt;&#x27;, &#x27;Filter by Location. Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#countries for available options. [Repeatable value]&#x27;, Helpers.collectValues, [])
+	.option(&#x27;-C, --category &lt;category&gt;&#x27;, &#x27;Filter by Category. Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#categories for available options. [Repeatable value]&#x27;, Helpers.collectValues, [])
+	.option(&#x27;-P, --platform &lt;platform&gt;&#x27;, &#x27;Filter by Platform. [Repeatable value]&#x27;, Helpers.collectValues, [])
+	.option(&#x27;-T, --transaction &lt;transaction&gt;&#x27;, &#x27;Filter by Transaction Type (call &quot;reportingitc options transaction&quot; to see all options). [Repeatable value]&#x27;, Helpers.collectValues, [])
+	.option(&#x27;-t, --type&#x27;, &#x27;Filter by Content Type. [Repeatable value]&#x27;)
+	// Result
+	.option(&#x27;-M, --measure &lt;measure&gt;&#x27;, &#x27;Result measures (units, proceeds). Defaulting to units. [Repeatable value]&#x27;, Helpers.collectValues, [&#x27;units&#x27;])
+	// Output
+	.option(&#x27;-o, --outputfile &lt;filename&gt;&#x27;, &#x27;Output file name. Will be saved as json.&#x27;)
+	// Config
+	.on(&quot;config&quot;, function() {
+		_.extend(program, program.config);
+	})
+	.on(&quot;since&quot;, function() {
+		Config.start = program.since;
+	})
+	.on(&quot;date&quot;, function() {
+		Config.end = program.date;
+	})
+	.on(&quot;group&quot;, function() {
+		Config.group = program.group;
+	})
+	.on(&quot;content&quot;, function() {
+		Config.filters.content = program.content;
+	})
+	.on(&quot;location&quot;, function() {
+		Config.filters.location = program.location;
+	})
+	.on(&quot;category&quot;, function() {
+		Config.filters.category = program.category;
+	})
+	.on(&quot;platform&quot;, function() {
+		Config.filters.platform = program.platform;
+	})
+	.on(&quot;transaction&quot;, function() {
+		Config.filters.transaction = program.transaction;
+	})
+	.on(&quot;type&quot;, function() {
+		Config.filters.type = program.type;
+	})
+	.on(&quot;measure&quot;, function() {
+		Config.measures = program.measure;
+	});
+
+// Command create-config
+program
+	.command(&#x27;create-config &lt;filename&gt;&#x27;)
+	.description(&#x27;Creates new config file &lt;filename&gt;&#x27;)
+	.usage(&#x27;report.json -&gt; this will create config file named report.json&#x27;)
+	.action(function(filename, options) {
+		var configFile = path.resolve(filename);
+		fs.writeFile(configFile, ConfigFileTemplate, function(err) {
+			if(err)
+				console.error(err);
+			else
+				console.log(&quot;\nConfig file was created at: &quot; + configFile + &quot;\n&quot;);
+		});
+	});
+
+// Command ranked
+program
+	.command(&#x27;ranked&#x27;)
+	.description(&#x27;Ranked report &#x27;)
+	.option(&#x27;-l, --limit &lt;limit&gt;&#x27;, &#x27;Specify results limit. Defaulting to 100&#x27;, 100)
+	.action(function(options) {
+		Helpers.request(program, function(itunes) {
+			// add Limit
+			Config.limit = options.limit;
+			// Query
+			var query = report.ranked(Config);
+			// Request
+			itunes.request(query, function(error, result, query) {
+				Helpers.processRequestResponse(error, result, program.outputfile);
+			});
+		});
+	});
+
+// Command timed
+program
+	.command(&#x27;timed&#x27;)
+	.description(&#x27;Timed report&#x27;)
+	.option(&#x27;-i, --interval &lt;interval&gt;&#x27;, &#x27;Specify date interval (day, week, month, quarter, year). Defaulting to day&#x27;, &#x27;day&#x27;)
+	.action(function(options) {
+		Helpers.request(program, function(itunes) {
+			// add interval
+			Config.interval = options.interval;
+			// Query
+			var query = report.timed(Config);
+			// Request
+			itunes.request(query, function(error, result, query) {
+				Helpers.processRequestResponse(error, result, program.outputfile);
+			});
+		});
+	});
+
+// Go go go ...
+program.parse(process.argv);
+
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 # itunesconnect
 
+ [![Build Status](https://travis-ci.org/stoprocent/node-itunesconnect.svg?branch=master)](https://travis-ci.org/stoprocent/node-itunesconnect)
+
  itunesconnect is [node.js](http://nodejs.org) module wrapping iTunes Connect Reporting API. It allows to query sales/downloads reports in super easy way.
 
 ## Installation

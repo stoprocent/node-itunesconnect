@@ -444,8 +444,8 @@ query.transaction([itc.transaction.free, itc.transaction.paid]).transaction(itc.
 *See [Constants](#constants) for available options*
 
 ```js
-query.transaction(itc.type.app);
-query.transaction([itc.type.inapp, itc.type.app]);
+query.type(itc.type.app);
+query.type([itc.type.inapp, itc.type.app]);
 ```
 
 

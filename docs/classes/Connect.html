@@ -303,6 +303,21 @@ var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;, {
                             
                             <li class="param">
                                 
+                                    <code class="param-name optional">[cookies]</code>
+                                    <span class="type">Array</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Cookies array. If you provide cookies array it will not login and use this instead.</p>
+
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
                                     <code class="param-name optional">[errorCallback]</code>
                                     <span class="type">Function</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
@@ -313,6 +328,37 @@ var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;, {
 
                                 </div>
 
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[loginCallback]</code>
+                                    <span class="type">Function</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Login callback function called when login to iTunes Connect was a success.</p>
+
+                                </div>
+
+                                
+                                    <ul class="params-list">
+                                        
+                                        <li class="param">
+                                            
+                                                <code class="param-name optional">[cookies]</code>
+                                                <span class="type">Function</span>
+                                                <span class="flag optional" title="This parameter is optional.">optional</span>
+                                            
+
+                                            <div class="param-description">
+                                                cookies are passed as a first argument. You can get it and cache it for later.
+                                            </div>
+                                        </li>
+                                        
+                                    </ul>
                                 
                             </li>
                             
@@ -448,7 +494,7 @@ var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l211"><code>index.js:211</code></a>
+        <a href="../files/index.js.html#l214"><code>index.js:214</code></a>
         
         </p>
 
@@ -559,7 +605,7 @@ var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l254"><code>index.js:254</code></a>
+        <a href="../files/index.js.html#l257"><code>index.js:257</code></a>
         
         </p>
 
@@ -664,7 +710,7 @@ var itunes = new itc.Connect(&#39;apple@id.com&#39;, &#39;password&#39;, {
             
         
         
-        <a href="../files/index.js.html#l177"><code>index.js:177</code></a>
+        <a href="../files/index.js.html#l180"><code>index.js:180</code></a>
         
         </p>
 
@@ -819,7 +865,7 @@ itunes.metadata(function(error, result) {
             
         
         
-        <a href="../files/index.js.html#l140"><code>index.js:140</code></a>
+        <a href="../files/index.js.html#l143"><code>index.js:143</code></a>
         
         </p>
 

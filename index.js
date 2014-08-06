@@ -101,7 +101,10 @@ exports.measure = {
 * @param {String} [options.baseURL] iTunes Connect Login URL
 * @param {String} [options.apiURL] iTunes Connect API URL
 * @param {Number} [options.concurrentRequests] Number of concurrent requests
+* @param {Array} [options.cookies] Cookies array. If you provide cookies array it will not login and use this instead.
 * @param {Function} [options.errorCallback] Error callback function called when requests are failing
+* @param {Function} [options.loginCallback] Login callback function called when login to iTunes Connect was a success.
+* @param {Function} [options.loginCallback.cookies] cookies are passed as a first argument. You can get it and cache it for later.
 */
 
 function Connect(username, password, options) {

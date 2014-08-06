@@ -4,24 +4,20 @@ var itc 	= require("../"),
 // Connect to iTunes
 var itunesconnect = new itc.Connect('apple@id.com', 'password');
 
-// Simple ranked report
-itunesconnect.request(Report.ranked().time(10, 'days'), function(error, result) {
-	console.log(result);
-});
-
 // More complex query
-var advancedQuery = Report('timed', {
+var query = Report('ranked', {
 	limit 	: 100,
 	filters : {
 		type: [
 			itc.type.inapp,
 			itc.type.app
-		]
+		],
+		category: [6001,6002,6003]
 	},
-	group: 'content'
+	group: 'content',
+	measures: [itc.measure.units, itc.measure.proceeds]
 }).time(2, 'days');
 
-itunes.request(advancedQuery, function(error, result) {
+itunesconnect.request(query, function(error, result) {
 	console.log(result);
 });
-

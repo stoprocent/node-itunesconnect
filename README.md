@@ -6,9 +6,10 @@
 
     $ npm install itunesconnect
 
- If you want to have and access to comman-line tool **itcreport** install itunesconnect globally.
+ If you want to have and access to comman-line tool **`itcreport`** install itunesconnect globally. See [more info](#itcreport) about **`itcreport`**.
 
     $ npm install itunesconnect -g
+    $ itcreport --help
 
 ## About reports
 
@@ -446,6 +447,49 @@ query.transaction([itc.transaction.free, itc.transaction.paid]).transaction(itc.
 ```js
 query.type(itc.type.app);
 query.type([itc.type.inapp, itc.type.app]);
+```
+
+# itcreport
+
+*Command-Line tool to get report results from console. It can output result to console or to to json file*
+
+```
+$ itcreport --help
+
+  Usage: itcreport [options] [command]
+
+  Commands:
+
+    create-config <filename>
+       Creates new config file <filename>
+    
+    ranked [options] 
+       Ranked report 
+    
+    timed [options] 
+       Timed report
+    
+
+  Options:
+
+    -h, --help                       output usage information
+    -V, --version                    output the version number
+    -c, --config <filename>          Specify config file
+    -h, --cachetime <seconds>        Specify cache time for session cookies. Defaulting to 1800.
+    -f, --forcelogin                 Will ignore cached cookies and re-login.
+    -u, --username <username>        iTunes Connect Username (Apple ID)
+    -p, --password <password>        iTunes Connect Password
+    -s, --since <since>              Specify since date. You can use format YYYY-MM-DD or simply 1day ...
+    -d, --date <date>                Specify date (YYYY-MM-DD) Defaulting to today.
+    -g, --group <group>              Group results by one of the following: 
+    -A, --content <contentid>        Filter by Content ID. [Repeatable value]
+    -L, --location <location>        Filter by Location. Visit (...) for available options. [Repeatable value]
+    -C, --category <category>        Filter by Category. Visit (...) for available options. [Repeatable value]
+    -P, --platform <platform>        Filter by Platform. [Repeatable value]
+    -T, --transaction <transaction>  Filter by Transaction Type. [Repeatable value]
+    -t, --type                       Filter by Content Type. [Repeatable value]
+    -M, --measure <measure>          Result measures (units, proceeds). Defaulting to units. [Repeatable value]
+    -o, --outputfile <filename>      Output file name. Will be saved as json.
 ```
 
 

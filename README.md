@@ -14,7 +14,7 @@
 
  There are 2 different report types, `ranked` and `timed`. 
  
- Ranked report is sorted by number of downloads and it can be filtered and grouped by one of the [types](#types). Ranked report result contains just a number of sales and/or proceeds regardless of time frame. Ranked  is also ignoring `interval` option. Good use case for ranked report is to get summary of sales and/or proceeds in some time period. You can also use `filters` and `group` to make your query more advanced.
+ Ranked report is sorted by number of downloads and it can be filtered and grouped by one of the [types](#constants). Ranked report result contains just a number of sales and/or proceeds regardless of time frame. Ranked  is also ignoring `interval` option. Good use case for ranked report is to get summary of sales and/or proceeds in some time period. You can also use `filters` and `group` to make your query more advanced.
  
  Timed report result is a little bit more detailed. It's not sorted by number of sales or proceeds. It's embedding objects with number of sales grouped by `interval` option. You should understand it more looking at the examples below. 
  
@@ -47,27 +47,32 @@ itunesconnect.request(Report('timed').time(3, 'weeks').interval('week'), functio
  **Result (ranked):**
 
 ```json
-[ { key: '0000000000',
-    title: 'App Name ',
-    rptgDesc: 'App',
-    contentSpecificTypeId: '1',
-    contentSpecificTypeName: 'iOS App',
-    contentGrpCd: 'Apps',
-    contentProviderId: '000000',
-    artistName: 'Artist Name',
-    contentProviderName: 'Provider Name',
-    units: 7684 }, // Number of units sold
-  { key: '0000000000',
-    title: 'In App Name ...',
-    rptgDesc: 'In App',
-    contentSpecificTypeId: '3',
-    contentSpecificTypeName: 'Auto-Renewable Subscription',
-    contentGrpCd: 'Apps',
-    contentProviderId: '000000',
-    contentProviderName: 'Provider Name',
-    units: 2886 }, // Number of units sold
+[
+  {
+    "key": 0,
+    "title": "App Name ",
+    "rptgDesc": "App",
+    "contentSpecificTypeId": 1,
+    "contentSpecificTypeName": "iOS App",
+    "contentGrpCd": "Apps",
+    "contentProviderId": 0,
+    "artistName": "Artist Name",
+    "contentProviderName": "Provider Name",
+    "units": 7684
+  },
+  {
+    "key": 0,
+    "title": "In App Name ...",
+    "rptgDesc": "In App",
+    "contentSpecificTypeId": 3,
+    "contentSpecificTypeName": "Auto-Renewable Subscription",
+    "contentGrpCd": "Apps",
+    "contentProviderId": 0,
+    "contentProviderName": "Provider Name",
+    "units": 2886
+  }
 
-    ...
+  ...
 
 ]
 ```
@@ -220,11 +225,11 @@ Connect(<username>, <password>, [options])
 ```
 
 Available options:
-```
-concurrentRequests	: Number,
-errorCallback	 	: function(error) {},
-loginCallback	 	: function(cookies) {},
-cookies               : []
+```js
+options.concurrentRequests	= Number
+options.errorCallback	 	= Function //function(error) {}
+options.loginCallback	 	= Function //function(cookies) {}
+options.cookies             = Array
 ```
 
 If you want to cache login cookies use loginCallback and set cookies option
@@ -255,25 +260,29 @@ Please also reffer to [Query](http://stoprocent.github.io/node-itunesconnect/doc
 
 ```
 Report(<type>, [config])
+Report.ranked([config])
+Report.timed([config])
 ```
 
 Config Object:
-```
-config.start 		   	= String|Date // (Date or if String must be in format YYYY-MM-DD)
-config.end 			 	= String|Date // (Date or if String must be in format YYYY-MM-DD)
+
+```js
+config.start 		   	    = String|Date // (Date or if String must be in format YYYY-MM-DD)
+config.end 			 	    = String|Date // (Date or if String must be in format YYYY-MM-DD)
 config.interval 			= String // (Available values: day,week,month,quarter,year)
-config.filters.content 	 = Number|Array // (Content ID / Application ID)
+config.filters.content 	    = Number|Array // (Content ID / Application ID)
 config.filters.type 		= String|Array // (Please refer to constants below)
 config.filters.transaction  = String|Array // (Please refer to constants below)
 config.filters.category 	= Number|Array // (Visit Cheet-Sheet#categories for available options)
 config.filters.platform 	= String|Array // (Please refer to constants below)
 config.filters.location 	= Number|Array // (Visit Cheet-Sheet#countries for available options)
-config.group 		   	= String // (Available values: content,type,transaction,category,platform,location)
+config.group 		   	    = String // (Available values: content,type,transaction,category,platform,location)
 config.measures 			= Array // (Please refer to constants below)
-config.limit 		   	= Number
+config.limit 		   	    = Number
 ```
 
-Constants:
+### Constants
+
 ```js
 // Import itunesconnect
 var itc = require("itunesconnect"),
@@ -302,31 +311,92 @@ itc.measure.units
 
 # Query Class Methods
 
-## query.category
-
-## query.content
-
 ## query.date
+
+Example:
+
+```js
+// Start and end date set manualy
+query.date('2014-04-08', new Date());
+
+// Start and end date will be todays date
+query.date(new Date());
+
+// Start and end date will be set as 8th of April 2014
+query.date('2014-04-08');
+
+// End date will be set as 8th of April 2014 and start as 8th of Jan 2014
+query.date('2014-04-08').time('3', 'months');
+```
+
+## query.time
+
+```js
+// Start date will be set to 10 weeks from today
+query.time(10, 'weeks');
+
+// End date will be set as 8th of April 2014 and start as 8th of Jan 2014
+query.date('2014-04-08').time('3', 'months');
+```
 
 ## query.group
 
+Available options:
+ * content
+ * type
+ * transaction
+ * category
+ * platform
+ * location
+
+*Ranked report default is `content`. Timed report default is `null`*
+
+```js
+query.group('transaction');
+```
+
 ## query.interval
+
+Available options:
+ * day
+ * week
+ * month
+ * quarter
+ * year
+
+*Ranked report is ignoring this.*
+
+```js
+query.interval('day');
+```
 
 ## query.limit
 
-## query.location
+*Ranked report default is 100. Timed report is ignoring this.*
+
+```js
+query.limit(100);
+```
 
 ## query.measures
 
-## query.platform
+# Filter Medthods
 
-## query.time
+*All filter methods take one parameter Value or Array of Values*
+
+**Please note **
+
+## query.content
+
+## query.category
+
+## query.location
+
+## query.platform
 
 ## query.transaction
 
 ## query.type 
-
-
 
 
 # Links

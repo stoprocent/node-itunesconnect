@@ -103,10 +103,10 @@ describe('Report', function(){
 					filters : {
 						content: [1,2,3],
 						location: [4,5,6],
-						transaction: itc.Transaction.Free,
+						transaction: itc.transaction.free,
 						type: [
-							itc.Type.InApp, 
-							itc.Type.App
+							itc.type.inapp, 
+							itc.type.app
 						],
 						category: 7
 					}
@@ -122,13 +122,29 @@ describe('Report', function(){
 				        "option_keys": [4, 5, 6]
 				    }, {
 				        "dimension_key": "transaction_type",
-				        "option_keys": [itc.Transaction.Free]
+				        "option_keys": [itc.transaction.free]
 				    }, {
 				        "dimension_key": "content_type",
-				        "option_keys": [itc.Type.InApp, itc.Type.App]
+				        "option_keys": [itc.type.inapp, itc.type.app]
 				    }, {
 				        "dimension_key": "Category",
 				        "option_keys": [7]
+				    }]
+				});
+				done();
+			})
+			it('should have correct filters property when using query and chainable method', function(done) {
+				var query = Report.ranked({
+					filters : {
+						category: 7
+					}
+				}).category(8).category([9, 10]);
+				query.body();
+
+				query._body.should.have.properties({
+				    "filters": [{
+				        "dimension_key": "Category",
+				        "option_keys": [7,8,9,10]
 				    }]
 				});
 				done();

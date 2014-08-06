@@ -451,7 +451,9 @@ query.type([itc.type.inapp, itc.type.app]);
 
 # itcreport
 
-*Command-Line tool to get report results from console. It can output result to console or to to json file*
+*Command-Line tool to get report results from console. It can output result to console or to to json file.* 
+
+**I strongly recommend to put username and password in config file so its not in bash history**
 
 ```
 $ itcreport --help
@@ -492,6 +494,58 @@ $ itcreport --help
     -o, --outputfile <filename>      Output file name. Will be saved as json.
 ```
 
+**Some examples ...**
+
+```
+$ itcreport create-config sample.json 
+```
+
+```
+$ itcreport timed -c sample.json --since 1week
+```
+
+```
+$ itcreport timed -c sample.json --since 1week -C 6001 -C 6002
+```
+
+```
+$ itcreport timed -c sample.json --date 2014-01-01
+```
+
+### itcreport strings
+*Same story as for [constants](#constants)*
+
+```js
+// Types
+inapp
+app
+
+// Transactions
+free
+paid
+redownload
+update
+refund
+
+// Platforms
+desktop
+iphone
+ipad
+ipod
+
+// Measures
+proceeds
+units
+```
+
+```
+$ itcreport timed -c sample.json --date 2014-01-01 --platform desktop --platform ipad
+```
+
+# TODO
+
+ - Better tests
+ - More examples 
 
 # Links
 

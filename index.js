@@ -103,6 +103,7 @@ exports.measure = {
 * @param {Number} [options.concurrentRequests] Number of concurrent requests
 * @param {Array} [options.cookies] Cookies array. If you provide cookies array it will not login and use this instead.
 * @param {Function} [options.errorCallback] Error callback function called when requests are failing
+* @param {Function} [options.errorCallback.error] Login error
 * @param {Function} [options.loginCallback] Login callback function called when login to iTunes Connect was a success.
 * @param {Function} [options.loginCallback.cookies] cookies are passed as a first argument. You can get it and cache it for later.
 */
@@ -698,6 +699,9 @@ Query.prototype.content = function(value) {
 	if(typeof this.config.filters["content"] === "undefined")
 		this.config.filters.content = [];
 
+	if(!_.isArray(this.config.filters.content)) 
+		this.config.filters.content = [this.config.filters.content];
+
 	if(_.isArray(value))
 		this.config.filters.content = this.config.filters.content.concat(value);
 	else
@@ -739,6 +743,9 @@ Query.prototype.category = function(value) {
 	if(typeof this.config.filters["category"] === "undefined")
 		this.config.filters.category = [];
 
+	if(!_.isArray(this.config.filters.category)) 
+		this.config.filters.category = [this.config.filters.category];
+
 	if(_.isArray(value))
 		this.config.filters.category = this.config.filters.category.concat(value);
 	else
@@ -759,6 +766,9 @@ Query.prototype.category = function(value) {
 Query.prototype.location = function(value) {
 	if(typeof this.config.filters["location"] === "undefined")
 		this.config.filters.location = [];
+
+	if(!_.isArray(this.config.filters.location)) 
+		this.config.filters.location = [this.config.filters.location];
 
 	if(_.isArray(value))
 		this.config.filters.location = this.config.filters.location.concat(value);
@@ -781,6 +791,9 @@ Query.prototype.platform = function(value) {
 	if(typeof this.config.filters["platform"] === "undefined")
 		this.config.filters.platform = [];
 
+	if(!_.isArray(this.config.filters.platform)) 
+		this.config.filters.platform = [this.config.filters.platform];
+
 	if(_.isArray(value))
 		this.config.filters.platform = this.config.filters.platform.concat(value);
 	else
@@ -802,6 +815,9 @@ Query.prototype.type = function(value) {
 	if(typeof this.config.filters["type"] === "undefined")
 		this.config.filters.type = [];
 
+	if(!_.isArray(this.config.filters.type)) 
+		this.config.filters.type = [this.config.filters.type];
+
 	if(_.isArray(value))
 		this.config.filters.type = this.config.filters.type.concat(value);
 	else
@@ -820,8 +836,11 @@ Query.prototype.type = function(value) {
 */
 
 Query.prototype.transaction = function(value) {
-	if(typeof this.config.filters["transaction"] === "undefined")
+	if(typeof this.config.filters["transaction"] === "undefined") 
 		this.config.filters.transaction = [];
+
+	if(!_.isArray(this.config.filters.transaction)) 
+		this.config.filters.transaction = [this.config.filters.transaction];
 
 	if(_.isArray(value))
 		this.config.filters.transaction = this.config.filters.transaction.concat(value);

@@ -695,7 +695,14 @@ Query.prototype.limit = function(value) {
 */
 
 Query.prototype.content = function(value) {
-	this.config.filters.content = value;
+	if(typeof this.config.filters["content"] === "undefined")
+		this.config.filters.content = [];
+
+	if(_.isArray(value))
+		this.config.filters.content = this.config.filters.content.concat(value);
+	else
+		this.config.filters.content.push(value);
+
 	return this;
 }
 
@@ -717,12 +724,10 @@ Query.prototype.content = function(value) {
 *	var otherQuery = Report.timed({
 *		limit: 10
 *	});
-*	// OK
+*	
+*	// 
 * 	otherQuery.category([6001, 6002, 6003]);
-* 
-*	// Wrong - This will not work as for version 0.0.1! 6003 will overwrite previously set category ids
-* 	// You are more than welcome to sort this out in pull request. I saw no reason to do this.
-* 	otherQuery.category([6001, 6002, 6003]).category(6003);	
+* 	otherQuery.category([6004, 6005, 6006]).category(6007);	
 *	
 * @method category
 * @for Query
@@ -731,7 +736,14 @@ Query.prototype.content = function(value) {
 */
 
 Query.prototype.category = function(value) {
-	this.config.filters.category = value;
+	if(typeof this.config.filters["category"] === "undefined")
+		this.config.filters.category = [];
+
+	if(_.isArray(value))
+		this.config.filters.category = this.config.filters.category.concat(value);
+	else
+		this.config.filters.category.push(value);
+
 	return this;
 }
 
@@ -745,7 +757,14 @@ Query.prototype.category = function(value) {
 */
 
 Query.prototype.location = function(value) {
-	this.config.filters.location = value;
+	if(typeof this.config.filters["location"] === "undefined")
+		this.config.filters.location = [];
+
+	if(_.isArray(value))
+		this.config.filters.location = this.config.filters.location.concat(value);
+	else
+		this.config.filters.location.push(value);
+
 	return this;
 }
 
@@ -759,7 +778,14 @@ Query.prototype.location = function(value) {
 */
 
 Query.prototype.platform = function(value) {
-	this.config.filters.platform = value;
+	if(typeof this.config.filters["platform"] === "undefined")
+		this.config.filters.platform = [];
+
+	if(_.isArray(value))
+		this.config.filters.platform = this.config.filters.platform.concat(value);
+	else
+		this.config.filters.platform.push(value);
+
 	return this;
 }
 
@@ -773,7 +799,14 @@ Query.prototype.platform = function(value) {
 */
 
 Query.prototype.type = function(value) {
-	this.config.filters.type = value;
+	if(typeof this.config.filters["type"] === "undefined")
+		this.config.filters.type = [];
+
+	if(_.isArray(value))
+		this.config.filters.type = this.config.filters.type.concat(value);
+	else
+		this.config.filters.type.push(value);
+
 	return this;
 }
 
@@ -787,7 +820,14 @@ Query.prototype.type = function(value) {
 */
 
 Query.prototype.transaction = function(value) {
-	this.config.filters.transaction = value;
+	if(typeof this.config.filters["transaction"] === "undefined")
+		this.config.filters.transaction = [];
+
+	if(_.isArray(value))
+		this.config.filters.transaction = this.config.filters.transaction.concat(value);
+	else
+		this.config.filters.transaction.push(value);
+
 	return this;
 }
 

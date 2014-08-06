@@ -16,8 +16,8 @@ var query = Report('ranked', {
 	},
 	group: 'content',
 	measures: [itc.measure.units, itc.measure.proceeds]
-}).time(2, 'days');
+}).time(2, 'days').category(6004).category([6005, 6006]);
 
-itunesconnect.request(query, function(error, result) {
-	console.log(result);
+itunesconnect.request(query, function(error, result, query) {
+	console.log(query);
 });

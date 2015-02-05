@@ -37,12 +37,12 @@ var Report = itc.Report;
 var itunes = new itc.Connect('apple@id.com', 'password');
 
 // Simple ranked report
-itunesconnect.request(Report.ranked().time(10, 'days'), function(error, result) {
+itunes.request(Report.ranked().time(10, 'days'), function(error, result) {
     console.log(result);
 });
 
 // Or
-itunesconnect.request(Report('timed').time(3, 'weeks').interval('week'), function(error, result) {
+itunes.request(Report('timed').time(3, 'weeks').interval('week'), function(error, result) {
     console.log(result);
 });
 ```
@@ -119,7 +119,7 @@ var Report = itc.Report;
 var itunes = new itc.Connect('apple@id.com', 'password');
 
 // Or
-itunesconnect.request(Report('timed').time(3, 'weeks').interval('week').group('location'), function(error, result) {
+itunes.request(Report('timed').time(3, 'weeks').interval('week').group('location'), function(error, result) {
     console.log(result);
 });
 ```

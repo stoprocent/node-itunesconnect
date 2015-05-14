@@ -8,7 +8,7 @@
 * Module dependencies.
 */
 
-var async 	= require('async');
+var async = require('async'),
 	request = require('request'),
 	cheerio = require('cheerio'),
 	moment  = require('moment'),
@@ -284,11 +284,11 @@ Connect.prototype.login = function(username, password) {
 				'theAuxValue'		: ""
 			}
 		}, function(error, response, body) {
-			var cookies = response.headers['set-cookie'];
+			var cookies = response ? response.headers['set-cookie'] : null;
 			// Handle Errors
-			if(error || !cookies.length) {
+			if(error || !(cookies && cookies.length)) {
 				error = error || new Error('There was a problem with recieving cookies. Please check your username and password.');
-				this.options.errorCallback( error );
+				self.options.errorCallback( error );
 			}
 			else { 
 				// Set _cookies and run callback

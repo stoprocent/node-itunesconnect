@@ -236,7 +236,10 @@ Connect.prototype.executeRequest = function(task, callback) {
 			'Cookie': this._cookies
 		}
 	}, function(error, response, body) {
-		if(response.statusCode == 401) {
+		if(!response.hasOwnProperty('statusCode')){
+			error = new Error('iTunes Connect is not responding. The service may be temporarily offline.');
+			body  = null;
+		}else if(response.statusCode == 401) {
 			error = new Error('This request requires authentication. Please check your username and password.');
 			body  = null;
 		}

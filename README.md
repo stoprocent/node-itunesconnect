@@ -4,6 +4,9 @@
 
  itunesconnect is [node.js](http://nodejs.org) module wrapping iTunes Connect Reporting API. It allows to query sales/downloads reports in super easy way.
 
+## Update 4th June 2015
+This module was mainly made for fun to display some stats on a dashboard at my work. As I see there is quite a few people using it so I thought I will make some more updates soon. Plan is now to include itunesconnect analitics, so stay tuned. Also want to thank you for all comments & pull requests :)
+
 ## Installation
 
     $ npm install itunesconnect

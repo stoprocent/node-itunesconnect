@@ -113,6 +113,7 @@ function Connect(username, password, options) {
 	this.options = {
 		baseURL				: "https://itunesconnect.apple.com",
 		apiURL				: "https://reportingitc2.apple.com/api/",
+		loginURL			: "https://idmsa.apple.com/appleauth/auth/signin",
 		concurrentRequests	: 2,
 		errorCallback		: function(e) {},
 		loginCallback		: function(c) {}
@@ -270,6 +271,58 @@ Connect.prototype.executeRequest = function(task, callback) {
 
 Connect.prototype.login = function(username, password) {
 	var self = this;
+
+	//Request apple login page from which we need a "my account info" cookie
+	request.post({
+		url 	: this.options.loginURL,
+		headers	: { 'Content-Type': 'application/json' },
+		json 	: {
+			"accountName" 	: username,
+			"password"		: password,
+			"rememberMe"	: false
+		}
+	}, function(error, response, body) { 
+		var cookies = response ? response.headers['set-cookie'] : null;
+
+		if (error || !(cookies && cookies.length)) {
+			error = error || new Error('There was a problem with loading the login page cookies. Check login credentials.');
+		} else {
+			//extract the account info cookie
+			var myAccount = /myacinfo=.+?;/.exec(cookies);
+			if (myAccount == null || myAccount.length == 0) {
+				error = error || new Error('No account cookie :( Apple probably changed the login process');
+			} else {
+
+				//Request itunes connect page that will give us itCtx cookie needed for api requests
+				request.get({
+					//not sure where this action comes from, so it's hardcoded
+					url 	: self.options.baseURL + "/WebObjects/iTunesConnect.woa",
+					followRedirect : false,	//We can't follow redirects, otherwise we will "miss" the itCtx cookie 
+					headers	: {
+						'Cookie': myAccount[0]
+					},
+				}, function(error, response, body) {
+					cookies = response ? response.headers['set-cookie'] : null;
+					if (error || !(cookies && cookies.length)) {
+						error = error || new Error('There was a problem with loading the login page cookies.');
+					} else {
+						//extract the itCtx cookie
+						var itCtx = /itctx=.+?;/.exec(cookies);
+						if (itCtx == null || itCtx.length == 0) {
+							error = error || new Error('No itCtx cookie :( Apple probably changed the login process');		
+						} else {
+							//We preserve only these two cookies, because keeping all of them resulted in some non-deterministic 500-errors from api
+							self._cookies = myAccount[0] + " " + itCtx[0];
+							self.options.loginCallback(self._cookies);
+							//Start requests queue
+							self._queue.resume();
+						}
+					}				
+				});
+
+			}
+		}
+	})
 	// Request ITC to get fresh post action
 	request.get(this.options.baseURL, function(error, response, body) {
 		// Handle Errors

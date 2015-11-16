@@ -1,6 +1,6 @@
 {
   "name": "itunesconnect",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "node.js iTunes Connect Reporting module",
   "main": "./index.js",
   "bin": {

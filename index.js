@@ -10,7 +10,6 @@
 
 var async = require('async'),
 	request = require('request'),
-	cheerio = require('cheerio'),
 	moment  = require('moment'),
 	fs 		= require('fs'),
 	path	= require('path'),
@@ -114,6 +113,7 @@ function Connect(username, password, options) {
 		baseURL				: "https://itunesconnect.apple.com",
 		apiURL				: "https://reportingitc2.apple.com/api/",
 		loginURL			: "https://idmsa.apple.com/appleauth/auth/signin",
+		appleWidgetKey      : "22d448248055bab0dc197c6271d738c3",
 		concurrentRequests	: 2,
 		errorCallback		: function(e) {},
 		loginCallback		: function(c) {}
@@ -275,7 +275,7 @@ Connect.prototype.login = function(username, password) {
 	//Request apple login page from which we need a "my account info" cookie
 	request.post({
 		url 	: this.options.loginURL,
-		headers	: { 'Content-Type': 'application/json' },
+		headers	: { 'Content-Type': 'application/json', 'X-Apple-Widget-Key': this.options.appleWidgetKey },
 		json 	: {
 			"accountName" 	: username,
 			"password"		: password,
@@ -283,12 +283,13 @@ Connect.prototype.login = function(username, password) {
 		}
 	}, function(error, response, body) { 
 		var cookies = response ? response.headers['set-cookie'] : null;
-
+		
 		if (error || !(cookies && cookies.length)) {
 			error = error || new Error('There was a problem with loading the login page cookies. Check login credentials.');
 		} else {
 			//extract the account info cookie
 			var myAccount = /myacinfo=.+?;/.exec(cookies);
+
 			if (myAccount == null || myAccount.length == 0) {
 				error = error || new Error('No account cookie :( Apple probably changed the login process');
 			} else {
@@ -303,6 +304,7 @@ Connect.prototype.login = function(username, password) {
 					},
 				}, function(error, response, body) {
 					cookies = response ? response.headers['set-cookie'] : null;
+
 					if (error || !(cookies && cookies.length)) {
 						error = error || new Error('There was a problem with loading the login page cookies.');
 					} else {
@@ -323,38 +325,6 @@ Connect.prototype.login = function(username, password) {
 			}
 		}
 	})
-	// Request ITC to get fresh post action
-	request.get(this.options.baseURL, function(error, response, body) {
-		// Handle Errors
-
-		// Search for action attribute
-		var html = cheerio.load(body);
-		var action = html('form').attr('action');
-
-		// Login to ITC
-		request.post({
-			url : self.options.baseURL + action, 
-			form: {
-				'theAccountName' 	: username,
-				'theAccountPW'		: password,
-				'theAuxValue'		: ""
-			}
-		}, function(error, response, body) {
-			var cookies = response ? response.headers['set-cookie'] : null;
-			// Handle Errors
-			if(error || !(cookies && cookies.length)) {
-				error = error || new Error('There was a problem with recieving cookies. Please check your username and password.');
-				self.options.errorCallback( error );
-			}
-			else { 
-				// Set _cookies and run callback
-				self._cookies = cookies;
-				self.options.loginCallback(cookies);
-				// Start requests queue
-				self._queue.resume();
-			}
-		});
-	});
 }
 
 /**

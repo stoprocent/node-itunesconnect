@@ -164,7 +164,7 @@ program
 	// Group
 	.option('-g, --group <group>', 'Group results by one of the following: ')
 	// Filters
-	.option('-A, --content <contentid>', 'Filter by Content ID. [Repeatable value]', Helpers.collectValues, [])
+	.option('-A, --content <contentid>', 'Filter by Content ID. [Repeatable value]')
 	.option('-L, --location <location>', 'Filter by Location. Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#countries for available options. [Repeatable value]', Helpers.collectValues, [])
 	.option('-C, --category <category>', 'Filter by Category. Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#categories for available options. [Repeatable value]', Helpers.collectValues, [])
 	.option('-P, --platform <platform>', 'Filter by Platform. [Repeatable value]', Helpers.collectValues, [])

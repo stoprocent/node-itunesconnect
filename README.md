@@ -1,11 +1,16 @@
+# This package is deprecated
+I've created this npm mainly for fun to display some stats on a dashboard at my work. 
+I didnt plan to support it as it was fine for what is was create for.
+I didn't update `node-itunesconnect` in very long time so this package is now deprecated.
+I will let it be here but **Issues** are now closed.
+
+### For anyone interested there is a better and still maintained version of similar tool here: https://github.com/JanHalozan/iTunesConnectAnalytics
+
 # itunesconnect
 
  [![Build Status](https://travis-ci.org/stoprocent/node-itunesconnect.svg?branch=master)](https://travis-ci.org/stoprocent/node-itunesconnect)
 
  itunesconnect is [node.js](http://nodejs.org) module wrapping iTunes Connect Reporting API. It allows to query sales/downloads reports in super easy way.
-
-## Update 4th June 2015
-This module was mainly made for fun to display some stats on a dashboard at my work. As I see there is quite a few people using it so I thought I will make some more updates soon. Plan is now to include itunesconnect analitics, so stay tuned. Also want to thank you for all comments & pull requests :)
 
 ## Installation
 

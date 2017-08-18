@@ -1,6 +1,6 @@
 # This package is deprecated
 I've created this npm mainly for fun to display some stats on a dashboard at my work. 
-I didnt plan to support it as it was fine for what is was create for.
+I didnt plan to support it as it was fine for what I've created it for.
 I didn't update `node-itunesconnect` in very long time so this package is now deprecated.
 I will let it be here but **Issues** are now closed.
 

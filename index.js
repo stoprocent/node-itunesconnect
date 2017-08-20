@@ -68,7 +68,7 @@ exports.platform = {
 */
 
 exports.measure = {
-	proceeds	: "Royalty",
+	proceeds	: "Royalty_utc",
 	units 		: "units"
 }
 
@@ -80,7 +80,7 @@ exports.measure = {
 *	// Import itc-report
 *	var itc 	= require("itunesconnect"),
 *		Report  = itc.Report;
-*	
+*
 *	// Init new iTunes Connect
 *	var itunes = new itc.Connect('apple@id.com', 'password');
 *
@@ -91,7 +91,7 @@ exports.measure = {
 *		},
 *		concurrentRequests: 1
 *	});
-*	
+*
 * @class Connect
 * @constructor
 * @param {String} username Apple ID login
@@ -110,10 +110,11 @@ exports.measure = {
 function Connect(username, password, options) {
 	// Default Options
 	this.options = {
-		baseURL				: "https://itunesconnect.apple.com",
-		apiURL				: "https://reportingitc2.apple.com/api/",
-		loginURL			: "https://idmsa.apple.com/appleauth/auth/signin",
-		appleWidgetKey      : "22d448248055bab0dc197c6271d738c3",
+		baseURL							: "https://itunesconnect.apple.com",
+		apiURL							: "https://reportingitc2.apple.com/gsf/",
+		loginURL						: "https://idmsa.apple.com/appleauth/auth/signin",
+		sessionURL					: "https://olympus.itunes.apple.com/v1/session",
+		appleWidgetKey			: "22d448248055bab0dc197c6271d738c3",
 		concurrentRequests	: 2,
 		errorCallback		: function(e) {},
 		loginCallback		: function(c) {}
@@ -126,7 +127,7 @@ function Connect(username, password, options) {
 
 	// Task Executor
 	this._queue = async.queue(
-		this.executeRequest.bind(this), 
+		this.executeRequest.bind(this),
 		this.options.concurrentRequests
 	);
 	// Pasue queue and wait for login to complete
@@ -150,7 +151,7 @@ function Connect(username, password, options) {
 *	// Import itc-report
 *	var itc 	= require("itunesconnect"),
 *		Report  = itc.Report;
-*	
+*
 *	// Init new iTunes Connect
 *	var itunes = new itc.Connect('apple@id.com', 'password');
 *
@@ -158,13 +159,13 @@ function Connect(username, password, options) {
 *	itunes.request(Report.timed().time(1, 'day'), function(error, result) {
 *		console.log(result);
 *	})
-*	
+*
 * @method request
 * @for Connect
 * @param {Query} query
 * @param {Function} completed
 * @param {Error} completed.error Just an error if occure
-* @param {Object} completed.result Report result 
+* @param {Object} completed.result Report result
 * @param {Object} [completed.query] Query that was sent
 * @chainable
 */
@@ -172,7 +173,7 @@ function Connect(username, password, options) {
 Connect.prototype.request = function(query, completed) {
 	// Push request to queue
 	this._queue.push({
-		query: query, 
+		query: query,
 		completed: completed
 	});
 
@@ -187,7 +188,7 @@ Connect.prototype.request = function(query, completed) {
 *	// Import itc-report
 *	var itc 	= require("itunesconnect"),
 *		Report  = itc.Report;
-*	
+*
 *	// Init new iTunes Connect
 *	var itunes = new itc.Connect('apple@id.com', 'password');
 *
@@ -195,13 +196,13 @@ Connect.prototype.request = function(query, completed) {
 *	itunes.metadata(function(error, result) {
 *		console.log(result);
 *	})
-*	
+*
 * @method metadata
 * @for Connect
 * @for Connect
 * @param {Function} completed
 * @param {Error} completed.error Just an error if occure
-* @param {Object} completed.result Metadata result 
+* @param {Object} completed.result Metadata result
 * @param {Object} [completed.query] Query that was sent
 */
 
@@ -228,15 +229,16 @@ Connect.prototype.executeRequest = function(task, callback) {
 	var completed = task.completed;
 	// Keep request body for callback
 	var requestBody = query.body();
-	// Run request
-	request.post({
+  var options = {
 		url 	: this.options.apiURL + query.endpoint,
 		body 	: requestBody,
 		headers	: {
 			'Content-Type': 'application/json',
 			'Cookie': this._cookies
 		}
-	}, function(error, response, body) {
+	};
+	// Run request
+	request.post(options, function(error, response, body) {
 		if(!response.hasOwnProperty('statusCode')){
 			error = new Error('iTunes Connect is not responding. The service may be temporarily offline.');
 			body  = null;
@@ -281,9 +283,9 @@ Connect.prototype.login = function(username, password) {
 			"password"		: password,
 			"rememberMe"	: false
 		}
-	}, function(error, response, body) { 
+	}, function(error, response, body) {
 		var cookies = response ? response.headers['set-cookie'] : null;
-		
+
 		if (error || !(cookies && cookies.length)) {
 			error = error || new Error('There was a problem with loading the login page cookies. Check login credentials.');
 		} else {
@@ -297,8 +299,8 @@ Connect.prototype.login = function(username, password) {
 				//Request itunes connect page that will give us itCtx cookie needed for api requests
 				request.get({
 					//not sure where this action comes from, so it's hardcoded
-					url 	: self.options.baseURL + "/WebObjects/iTunesConnect.woa",
-					followRedirect : false,	//We can't follow redirects, otherwise we will "miss" the itCtx cookie 
+					url 	: self.options.sessionURL,
+					followRedirect : false,	//We can't follow redirects, otherwise we will "miss" the itCtx cookie
 					headers	: {
 						'Cookie': myAccount[0]
 					},
@@ -311,7 +313,7 @@ Connect.prototype.login = function(username, password) {
 						//extract the itCtx cookie
 						var itCtx = /itctx=.+?;/.exec(cookies);
 						if (itCtx == null || itCtx.length == 0) {
-							error = error || new Error('No itCtx cookie :( Apple probably changed the login process');		
+							error = error || new Error('No itCtx cookie :( Apple probably changed the login process');
 						} else {
 							//We preserve only these two cookies, because keeping all of them resulted in some non-deterministic 500-errors from api
 							self._cookies = myAccount[0] + " " + itCtx[0];
@@ -319,7 +321,7 @@ Connect.prototype.login = function(username, password) {
 							//Start requests queue
 							self._queue.resume();
 						}
-					}				
+					}
 				});
 
 			}
@@ -335,15 +337,15 @@ Connect.prototype.login = function(username, password) {
 *	// Import itc-report
 *	var itc 	= require("itunesconnect"),
 *		Report  = itc.Report;
-*	
+*
 *	// Init new iTunes Connect
 *	var itunes = new itc.Connect('apple@id.com', 'password');
 *
 *	// Timed type query
 *	var query = Report('timed');
-*	
+*
 *	// Ranked type query with config object
-*	var query = Report('ranked', { limit: 100 });	
+*	var query = Report('ranked', { limit: 100 });
 *
 *	// Advanced Example
 *	var advancedQuery = Report('timed', {
@@ -355,14 +357,14 @@ Connect.prototype.login = function(username, password) {
 *			location: [{LocationID}, {LocationID}],
 *			transaction: itc.transaction.free,
 *			type: [
-*				itc.type.inapp, 
+*				itc.type.inapp,
 *				itc.type.app
 *			],
 *			category: {CategoryID}
 *		},
 *		group: 'content'
-*	});	
-*	
+*	});
+*
 * @class Report
 * @constructor
 * @param {String} <type>
@@ -378,11 +380,11 @@ Connect.prototype.login = function(username, password) {
 * @param {Object} [config.filters] Possible keys:
 * @param {Number|Array} [config.filters.content]
 * @param {String|Array} [config.filters.type]
-* @param {String|Array} [config.filters.transaction] 
+* @param {String|Array} [config.filters.transaction]
 * @param {Number|Array} [config.filters.category]
 * @param {String|Array} [config.filters.platform]
 * @param {Number|Array} [config.filters.location]
-* @param {String} [config.group] One of following: 
+* @param {String} [config.group] One of following:
 * @param {String} config.group.content
 * @param {String} config.group.type
 * @param {String} config.group.transaction
@@ -410,7 +412,7 @@ function Report(type, config) {
 *	// Import itc-report
 *	var itc 	= require("itunesconnect"),
 *		Report  = itc.Report;
-*	
+*
 *	// Init new iTunes Connect
 *	var itunes = new itc.Connect('apple@id.com', 'password');
 *
@@ -420,8 +422,8 @@ function Report(type, config) {
 *	// Another query
 *	var otherQuery = Report.ranked({
 *		limit: 10
-*	});	
-*	
+*	});
+*
 * @method ranked
 * @for Report
 * @param {Object} [config]
@@ -441,7 +443,7 @@ Report.ranked = function(config) {
 *	// Import itc-report
 *	var itc 		= require("itunesconnect"),
 *		Report   	= itc.Report;
-*	
+*
 *	// Init new iTunes Connect
 *	var itunes = new itc.Connect('apple@id.com', 'password');
 *
@@ -451,8 +453,8 @@ Report.ranked = function(config) {
 *	// Another query
 *	var otherQuery = Report.timed({
 *		limit: 10
-*	});	
-*	
+*	});
+*
 * @method timed
 * @for Report
 * @param {Object} [config]
@@ -471,24 +473,24 @@ Report.timed = function(config) {
 *
 *	// Import itc-report
 *	var itc = require("itunesconnect"),
-*	
+*
 *	// Types
-* 	itc.type.inapp 
-* 	itc.type.app 
-* 	
+* 	itc.type.inapp
+* 	itc.type.app
+*
 *	// Transactions
 * 	itc.transaction.free
 * 	itc.transaction.paid
 * 	itc.transaction.redownload
 * 	itc.transaction.update
 * 	itc.transaction.refund
-* 	
+*
 *	// Platforms
 * 	itc.platform.desktop
 * 	itc.platform.iphone
 * 	itc.platform.ipad
 * 	itc.platform.ipod
-* 	
+*
 *	// Measures
 * 	itc.measure.proceeds
 * 	itc.measure.units
@@ -516,8 +518,8 @@ function Query(config) {
 	_.extend(this.config, config);
 
 	// Private Options
-	this._time    = null;
-	this._body    = {};
+	this._time	= null;
+	this._body	= {};
 }
 
 /**
@@ -544,13 +546,15 @@ Query.prototype.body = function() {
 
 	// Building body
 	this._body = {
-		"start_date"	: this.config.start.format("YYYY-MM-DD[T00:00:00.000Z]"),
-		"end_date"		: this.config.end.format("YYYY-MM-DD[T00:00:00.000Z]"),
-		"interval"		: this.config.interval,
-		"filters"		: TransformValue.toBodyFilters(this.config.filters),
-		"group"			: TransformValue.toAppleKey(this.config.group),
-		"measures"		: this.config.measures,
-		"limit"			: this.config.limit
+		"filters" 	: TransformValue.toBodyFilters(this.config.filters),
+		"limit" 		: this.config.limit,
+		"group" 		: TransformValue.toAppleKey(this.config.group),
+		"measures" 	: TransformValue.toMeasures(this.config.measures),
+		"interval" 	: {
+			"key" 				: this.config.interval,
+			"startDate" 	: this.config.start.format("YYYY-MM-DD[T00:00:00.000Z]"),
+			"endDate" 		: this.config.end.format("YYYY-MM-DD[T00:00:00.000Z]")
+		}
 	};
 	return JSON.stringify(this._body);
 }
@@ -566,7 +570,7 @@ Query.prototype.body = function() {
 
 Query.prototype.timed = function() {
 	this.type 		= 'timed';
-	this.endpoint 	= 'data/timeseries';
+	this.endpoint 	= 'salesTrendsApp/businessareas/InternetServices/subjectareas/iTunes/vcubes/777/timeseries';
 
 	// Defaults for ranked type
 	this.config.group = this.config.group || null;
@@ -586,7 +590,7 @@ Query.prototype.timed = function() {
 
 Query.prototype.ranked = function() {
 	this.type 		= 'ranked';
-	this.endpoint 	= 'data/ranked';
+	this.endpoint 	= 'salesTrendsApp/businessareas/InternetServices/subjectareas/iTunes/vcubes/777/ranked';
 
 	// Defaults for ranked type
 	this.config.group = this.config.group || 'content';
@@ -600,10 +604,10 @@ Query.prototype.ranked = function() {
 *
 * @method interval
 * @for Query
-* @param {String} value One of the following: 
-* @param {String} value.day 
+* @param {String} value One of the following:
+* @param {String} value.day
 * @param {String} value.week
-* @param {String} value.month 
+* @param {String} value.month
 * @param {String} value.quarter
 * @param {String} value.year
 * @chainable
@@ -637,8 +641,8 @@ Query.prototype.interval = function(value) {
 
 Query.prototype.date = function(start, end) {
 	this.config.start = TransformValue.toMomentObject( start );
-	this.config.end = TransformValue.toMomentObject( 
-		((typeof end == 'undefined') ? start : end) 
+	this.config.end = TransformValue.toMomentObject(
+		((typeof end == 'undefined') ? start : end)
 	);
 
 	return this;
@@ -654,7 +658,7 @@ Query.prototype.date = function(start, end) {
 *
 * @method time
 * @for Query
-* @param {Number} <value> 
+* @param {Number} <value>
 * @param {String} <unit> day, week, month, etc...
 * @chainable
 */
@@ -669,7 +673,7 @@ Query.prototype.time = function(value, unit) {
 *
 * @method group
 * @for Query
-* @param {String} value One of following: 
+* @param {String} value One of following:
 * @param {String} value.content
 * @param {String} value.type
 * @param {String} value.transaction
@@ -689,7 +693,7 @@ Query.prototype.group = function(value) {
 *
 * @method measures
 * @for Query
-* @param {String|Array} <value> 
+* @param {String|Array} <value>
 * @chainable
 */
 
@@ -725,7 +729,7 @@ Query.prototype.content = function(value) {
 	if(typeof this.config.filters["content"] === "undefined")
 		this.config.filters.content = [];
 
-	if(!_.isArray(this.config.filters.content)) 
+	if(!_.isArray(this.config.filters.content))
 		this.config.filters.content = [this.config.filters.content];
 
 	if(_.isArray(value))
@@ -744,21 +748,21 @@ Query.prototype.content = function(value) {
 *	// Import itc-report
 *	var itc 	= require("itunesconnect"),
 *		Report  = itc.Report;
-*	
+*
 *	// Query
 *	var query = Report.timed({
 *		limit: 10
-*	}).category(6001);	
+*	}).category(6001);
 *
 *	// Another Query
 *	var otherQuery = Report.timed({
 *		limit: 10
 *	});
-*	
-*	// 
+*
+*	//
 * 	otherQuery.category([6001, 6002, 6003]);
-* 	otherQuery.category([6004, 6005, 6006]).category(6007);	
-*	
+* 	otherQuery.category([6004, 6005, 6006]).category(6007);
+*
 * @method category
 * @for Query
 * @param {Number|Array} <value> Visit https://github.com/stoprocent/itc-report/wiki/Cheet-Sheet#categories for available options
@@ -769,7 +773,7 @@ Query.prototype.category = function(value) {
 	if(typeof this.config.filters["category"] === "undefined")
 		this.config.filters.category = [];
 
-	if(!_.isArray(this.config.filters.category)) 
+	if(!_.isArray(this.config.filters.category))
 		this.config.filters.category = [this.config.filters.category];
 
 	if(_.isArray(value))
@@ -793,7 +797,7 @@ Query.prototype.location = function(value) {
 	if(typeof this.config.filters["location"] === "undefined")
 		this.config.filters.location = [];
 
-	if(!_.isArray(this.config.filters.location)) 
+	if(!_.isArray(this.config.filters.location))
 		this.config.filters.location = [this.config.filters.location];
 
 	if(_.isArray(value))
@@ -817,7 +821,7 @@ Query.prototype.platform = function(value) {
 	if(typeof this.config.filters["platform"] === "undefined")
 		this.config.filters.platform = [];
 
-	if(!_.isArray(this.config.filters.platform)) 
+	if(!_.isArray(this.config.filters.platform))
 		this.config.filters.platform = [this.config.filters.platform];
 
 	if(_.isArray(value))
@@ -841,7 +845,7 @@ Query.prototype.type = function(value) {
 	if(typeof this.config.filters["type"] === "undefined")
 		this.config.filters.type = [];
 
-	if(!_.isArray(this.config.filters.type)) 
+	if(!_.isArray(this.config.filters.type))
 		this.config.filters.type = [this.config.filters.type];
 
 	if(_.isArray(value))
@@ -862,10 +866,10 @@ Query.prototype.type = function(value) {
 */
 
 Query.prototype.transaction = function(value) {
-	if(typeof this.config.filters["transaction"] === "undefined") 
+	if(typeof this.config.filters["transaction"] === "undefined")
 		this.config.filters.transaction = [];
 
-	if(!_.isArray(this.config.filters.transaction)) 
+	if(!_.isArray(this.config.filters.transaction))
 		this.config.filters.transaction = [this.config.filters.transaction];
 
 	if(_.isArray(value))
@@ -897,7 +901,7 @@ var TransformValue = {};
 TransformValue.toBodyFilters = function(filters) {
 	var result = [];
 	_.each(filters, function(value, dimension) {
-		if(!_.isArray(value)) 
+		if(!_.isArray(value))
 			value = [value];
 
 		result.push({
@@ -921,10 +925,10 @@ TransformValue.toBodyFilters = function(filters) {
 
 TransformValue.toAppleKey = function(key) {
 	if(key === null)
-		return null;
+		return [];
 
 	var keys = {
-		content 	: "content",
+		content 	: ["content"],
 		type 		: "content_type",
 		transaction : "transaction_type",
 		category 	: "Category",
@@ -961,5 +965,22 @@ TransformValue.toMomentObject = function(date) {
 	}
 	else {
 		throw new Error('Unknown date format. Please use Date() object or String() with format YYYY-MM-DD.');
-	} 
+	}
+}
+
+/*
+* Builds the "measures" parameter list from the given array.
+*
+* @private
+* @function toMeasures
+* @for TransformValue
+* @param {Array} measures
+* @return {Array}
+*/
+TransformValue.toMeasures = function (measures) {
+	var results = [];
+	_.each(measures, function (value) {
+		results.push({ key: value });
+	});
+	return results;
 }

@@ -113,6 +113,7 @@ function Connect(username, password, options) {
 		baseURL				: "https://itunesconnect.apple.com",
 		apiURL				: "https://reportingitc2.apple.com/api/",
 		loginURL			: "https://idmsa.apple.com/appleauth/auth/signin",
+		sessionURL                      : "https://olympus.itunes.apple.com/v1/session",
 		appleWidgetKey      : "22d448248055bab0dc197c6271d738c3",
 		concurrentRequests	: 2,
 		errorCallback		: function(e) {},
@@ -297,7 +298,7 @@ Connect.prototype.login = function(username, password) {
 				//Request itunes connect page that will give us itCtx cookie needed for api requests
 				request.get({
 					//not sure where this action comes from, so it's hardcoded
-					url 	: self.options.baseURL + "/WebObjects/iTunesConnect.woa",
+					url 	: self.options.sessionURL,
 					followRedirect : false,	//We can't follow redirects, otherwise we will "miss" the itCtx cookie 
 					headers	: {
 						'Cookie': myAccount[0]
